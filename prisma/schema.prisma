@@ -204,3 +204,11 @@ model Event {
   templeId      String
   temple        Temple    @relation(fields: [templeId], references: [id])
 }
+
+// Live Devotee Counter
+model Counter {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  value         Int       @default(0)
+  lastUpdated   DateTime  @updatedAt
+}

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { DevoteeCounter } from "@/components/counter/devotee-counter"
 import Link from "next/link"
 
 export default function Home() {
@@ -52,6 +53,13 @@ export default function Home() {
               icon="🙏"
             />
           </div>
+        </div>
+      </section>
+
+      {/* Live Devotee Counter */}
+      <section className="py-10 px-4">
+        <div className="max-w-md mx-auto">
+          <DevoteeCounter />
         </div>
       </section>
     </main>
