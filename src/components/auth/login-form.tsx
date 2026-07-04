@@ -23,10 +23,12 @@ export function LoginForm() {
     const identifier = method === "email"
       ? formData.get("email") as string
       : formData.get("phone") as string
+    const password = formData.get("password") as string
 
     try {
       const result = await signIn("credentials", {
         [method]: identifier,
+        password,
         redirect: false,
       })
 
@@ -101,6 +103,17 @@ export function LoginForm() {
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="password">पासवर्ड</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="अपना पासवर्ड डालें"
+              required
+            />
+          </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "लॉगिन हो रहा है..." : "लॉगिन करें"}

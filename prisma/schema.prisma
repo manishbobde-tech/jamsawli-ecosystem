@@ -55,6 +55,7 @@ model User {
   name          String?
   email         String?   @unique
   phone         String?   @unique
+  password      String?   // Hashed password for credentials auth (optional for Google auth)
   emailVerified DateTime?
   image         String?
   role          UserRole  @default(DEVOTEE)

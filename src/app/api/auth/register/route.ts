@@ -5,7 +5,14 @@ import bcrypt from "bcryptjs"
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { name, email, phone } = body
+    const { name, email, phone, password } = body
+
+    if (!password) {
+      return NextResponse.json(
+        { message: "पासवर्ड आवश्यक है" },
+        { status: 400 }
+      )
+    }
 
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -34,11 +41,14 @@ export async function POST(req: Request) {
       )
     }
 
+    const hashedPassword = await bcrypt.hash(password, 12)
+
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone,
+        password: hashedPassword,
         organizationId: org.id,
       },
     })

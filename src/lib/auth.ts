@@ -24,6 +24,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email or phone required")
         }
 
+        if (!credentials?.password) {
+          throw new Error("Password required")
+        }
+
         let user
         if (credentials.email) {
           user = await prisma.user.findUnique({
@@ -37,6 +41,15 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) {
           throw new Error("User not found")
+        }
+
+        if (!user.password) {
+          throw new Error("This account uses Google sign-in. Please sign in with Google.")
+        }
+
+        const isValid = await bcrypt.compare(credentials.password, user.password)
+        if (!isValid) {
+          throw new Error("Invalid password")
         }
 
         return {

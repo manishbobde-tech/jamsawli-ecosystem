@@ -22,6 +22,7 @@ export function RegisterForm() {
       name: formData.get("name") as string,
       email: formData.get("email") as string,
       phone: formData.get("phone") as string,
+      password: formData.get("password") as string,
     }
 
     try {
@@ -93,6 +94,18 @@ export function RegisterForm() {
               type="tel"
               placeholder="+91 98765 43210"
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">पासवर्ड</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="कम से कम 8 अक्षर"
+              required
+              minLength={8}
             />
           </div>
 
