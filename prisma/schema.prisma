@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Multi-tenant: Organization (Temple Trust)
+model Organization {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String?
+  logo          String?
+  config        Json?     // Theme, settings, etc.
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  temples       Temple[]
+  users         User[]
+}
+
+// Temple (can have multiple per organization)
+model Temple {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String?
+  address       String?
+  city          String?
+  state         String?
+  pincode       String?
+  phone         String?
+  email         String?
+  website       String?
+  logo          String?
+  images        String[]
+  config        Json?     // Temple-specific settings
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  poojas        Pooja[]
+  bookings      Booking[]
+  events        Event[]
+}
+
+// Users (Devotees, Admins, Trustees)
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  phone         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(DEVOTEE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  donations     Donation[]
+  bookings      Booking[]
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+enum UserRole {
+  DEVOTEE
+  ADMIN
+  TRUSTEE
+  SUPER_ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Poojas (Rituals available for booking)
+model Pooja {
+  id            String    @id @default(cuid())
+  name          String
+  nameHi        String    // Hindi name
+  description   String?
+  descriptionHi String?
+  duration      Int       // Duration in minutes
+  price         Decimal   @db.Decimal(10, 2)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  templeId      String
+  temple        Temple    @relation(fields: [templeId], references: [id])
+
+  bookings      Booking[]
+}
+
+// Bookings (Pooja reservations)
+model Booking {
+  id            String    @id @default(cuid())
+  date          DateTime  // Pooja date
+  time          String    // Time slot (e.g., "06:00-07:00")
+  status        BookingStatus @default(PENDING)
+  totalAmount   Decimal   @db.Decimal(10, 2)
+  paymentId     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+
+  poojaId       String
+  pooja         Pooja     @relation(fields: [poojaId], references: [id])
+
+  templeId      String
+  temple        Temple    @relation(fields: [templeId], references: [id])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+// Donations
+model Donation {
+  id            String    @id @default(cuid())
+  amount        Decimal   @db.Decimal(10, 2)
+  currency      String    @default("INR")
+  purpose       String?   // Specific purpose of donation
+  paymentId     String?   // Razorpay payment ID
+  orderId       String?   // Razorpay order ID
+  status        DonationStatus @default(PENDING)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// Events (Festivals, Aartis, etc.)
+model Event {
+  id            String    @id @default(cuid())
+  title         String
+  titleHi       String?
+  description   String?
+  descriptionHi String?
+  startDate     DateTime
+  endDate       DateTime?
+  location      String?
+  imageUrl      String?
+  isRecurring   Boolean   @default(false)
+  recurrenceRule String?  // iCal RRULE format
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  templeId      String
+  temple        Temple    @relation(fields: [templeId], references: [id])
+}
