@@ -66,6 +66,9 @@ model User {
   sessions      Session[]
   donations     Donation[]
   bookings      Booking[]
+  userBadges    UserBadge[]
+  userStreaks   UserStreak[]
+  leaderboards  Leaderboard[]
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -211,4 +214,64 @@ model Counter {
   name          String    @unique
   value         Int       @default(0)
   lastUpdated   DateTime  @updatedAt
+}
+
+// Gamification Models
+model Badge {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  nameHi        String
+  description   String?
+  icon          String
+  tier          BadgeTier @default(BRONZE)
+  createdAt     DateTime  @default(now())
+
+  userBadges    UserBadge[]
+}
+
+enum BadgeTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+model UserBadge {
+  id            String    @id @default(cuid())
+  earnedAt      DateTime  @default(now())
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+
+  badgeId       String
+  badge         Badge     @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
+}
+
+model UserStreak {
+  id            String    @id @default(cuid())
+  type          String    // "darshan", "donation", "booking"
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  lastActive    DateTime  @updatedAt
+  createdAt     DateTime  @default(now())
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type])
+}
+
+model Leaderboard {
+  id            String    @id @default(cuid())
+  period        String    // "weekly", "monthly", "alltime"
+  score         Int       @default(0)
+  rank          Int?
+  updatedAt     DateTime  @updatedAt
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, period])
 }
