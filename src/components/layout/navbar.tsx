@@ -21,6 +21,9 @@ export function Navbar() {
           <Link href="/book" className="text-gray-700 hover:text-saffron-600">
             पूजा बुक करें
           </Link>
+          <Link href="/transparency" className="text-gray-700 hover:text-saffron-600">
+            पारदर्शिता
+          </Link>
           {session ? (
             <>
               <Link href="/dashboard" className="text-gray-700 hover:text-saffron-600">
