@@ -21,6 +21,12 @@ export function Navbar() {
           <Link href="/book" className="text-gray-700 hover:text-saffron-600">
             पूजा बुक करें
           </Link>
+          <Link href="/pilgrim" className="text-gray-700 hover:text-saffron-600">
+            तीर्थयात्री
+          </Link>
+          <Link href="/checkin" className="text-gray-700 hover:text-saffron-600">
+            चेक-इन
+          </Link>
           <Link href="/transparency" className="text-gray-700 hover:text-saffron-600">
             पारदर्शिता
           </Link>

@@ -71,6 +71,8 @@ model User {
   userStreaks   UserStreak[]
   leaderboards  Leaderboard[]
   visits        Visit[]
+  sosAlerts     SosAlert[]
+  lostFoundItems LostFoundItem[]
   notificationPreference NotificationPreference?
 
   organizationId String
@@ -315,4 +317,36 @@ model Visit {
 
   templeId      String?
   temple        Temple?   @relation(fields: [templeId], references: [id])
+}
+
+// Smart Pilgrim Services: Emergency SOS alerts
+model SosAlert {
+  id            String    @id @default(cuid())
+  type          String    @default("MEDICAL") // MEDICAL, SECURITY, FIRE, OTHER
+  location      String?
+  status        String    @default("ACTIVE")  // ACTIVE, RESOLVED, CANCELLED
+  resolvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+// Smart Pilgrim Services: Lost & Found items
+model LostFoundItem {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  photoUrl      String?
+  status        String    @default("LOST")   // LOST, FOUND, CLAIMED, RETURNED
+  location      String?
+  reporterName  String?
+  reporterPhone String?
+  contactInfo   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
 }
