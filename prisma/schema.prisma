@@ -69,6 +69,7 @@ model User {
   userBadges    UserBadge[]
   userStreaks   UserStreak[]
   leaderboards  Leaderboard[]
+  notificationPreference NotificationPreference?
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -274,4 +275,27 @@ model Leaderboard {
   user          User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, period])
+}
+
+model NotificationPreference {
+  id            String    @id @default(cuid())
+  dailyWisdom   Boolean   @default(true)
+  eventAlerts   Boolean   @default(true)
+  streakRemind  Boolean   @default(true)
+  quietStart    String    @default("22:00")
+  quietEnd      String    @default("06:00")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+model DailyWisdom {
+  id            String    @id @default(cuid())
+  verse         String
+  verseHi       String
+  source        String
+  audioUrl      String?
+  createdAt     DateTime  @default(now())
 }

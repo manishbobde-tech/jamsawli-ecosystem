@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:seed-wisdom": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed-daily-wisdom.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
