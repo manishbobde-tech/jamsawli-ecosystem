@@ -2,12 +2,14 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
+import { Navbar } from "@/components/layout/navbar"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Jamsawli Hanuman Lok - Where Faith Meets Innovation",
-  description: "Digital ecosystem for Chamatkarik Shri Hanuman Mandir, Jamsawli",
+  title: "जामसावली हनुमान लोक - Where Faith Meets Innovation",
+  description: "चमत्कारिक श्री हनुमान मंदिर का डिजिटल पारिस्थितिकी तंत्र",
+  keywords: ["jamsawli", "hanuman", "mandir", "temple", "donation", "booking"],
 }
 
 export default function RootLayout({
@@ -18,7 +20,10 @@ export default function RootLayout({
   return (
     <html lang="hi">
       <body className={inter.className}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   )
