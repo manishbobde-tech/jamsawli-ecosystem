@@ -47,6 +47,7 @@ model Temple {
   poojas        Pooja[]
   bookings      Booking[]
   events        Event[]
+  visits        Visit[]
 }
 
 // Users (Devotees, Admins, Trustees)
@@ -69,6 +70,7 @@ model User {
   userBadges    UserBadge[]
   userStreaks   UserStreak[]
   leaderboards  Leaderboard[]
+  visits        Visit[]
   notificationPreference NotificationPreference?
 
   organizationId String
@@ -298,4 +300,19 @@ model DailyWisdom {
   source        String
   audioUrl      String?
   createdAt     DateTime  @default(now())
+}
+
+// Temple Visit Check-ins
+model Visit {
+  id            String    @id @default(cuid())
+  checkInTime   DateTime  @default(now())
+  checkOutTime  DateTime?
+  duration      Int?      // Duration in minutes
+  createdAt     DateTime  @default(now())
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+
+  templeId      String?
+  temple        Temple?   @relation(fields: [templeId], references: [id])
 }
