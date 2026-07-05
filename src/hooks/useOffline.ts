@@ -15,6 +15,32 @@ export function useOffline() {
   const [isOffline, setIsOffline] = useState(false)
   const [pendingActions, setPendingActions] = useState<OfflineAction[]>([])
 
+  const syncPendingActions = useCallback(async () => {
+    try {
+      const db = await openDB()
+      const tx = db.transaction("offline-actions", "readwrite")
+      const store = tx.objectStore("offline-actions")
+      const actions = await getAllFromStore(store)
+
+      for (const action of actions) {
+        try {
+          await fetch(action.url, {
+            method: action.method,
+            headers: action.headers,
+            body: action.body,
+          })
+          store.delete(action.id)
+        } catch (e) {
+          console.error("Sync failed for action:", action.id)
+        }
+      }
+
+      setPendingActions([])
+    } catch (e) {
+      console.error("Sync error:", e)
+    }
+  }, [])
+
   useEffect(() => {
     setIsOffline(!navigator.onLine)
 
@@ -49,32 +75,6 @@ export function useOffline() {
     tx.objectStore("offline-actions").add(action)
 
     setPendingActions((prev) => [...prev, action])
-  }, [])
-
-  const syncPendingActions = useCallback(async () => {
-    try {
-      const db = await openDB()
-      const tx = db.transaction("offline-actions", "readwrite")
-      const store = tx.objectStore("offline-actions")
-      const actions = await getAllFromStore(store)
-
-      for (const action of actions) {
-        try {
-          await fetch(action.url, {
-            method: action.method,
-            headers: action.headers,
-            body: action.body,
-          })
-          store.delete(action.id)
-        } catch (e) {
-          console.error("Sync failed for action:", action.id)
-        }
-      }
-
-      setPendingActions([])
-    } catch (e) {
-      console.error("Sync error:", e)
-    }
   }, [])
 
   return { isOffline, pendingActions, queueAction, syncPendingActions }

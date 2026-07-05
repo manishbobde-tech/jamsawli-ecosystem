@@ -84,6 +84,5 @@ export async function showNotification(
     icon: icon || "/icon-192.png",
     tag: tag || "jamsawli-notification",
     badge: "/icon-192.png",
-    vibrate: [200, 100, 200],
   })
 }
