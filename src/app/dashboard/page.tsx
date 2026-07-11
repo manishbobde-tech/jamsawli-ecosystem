@@ -1,6 +1,7 @@
 import { StatsCard } from "@/components/dashboard/stats-card"
 import { DonationsTable } from "@/components/dashboard/donations-table"
 import { BookingsTable } from "@/components/dashboard/bookings-table"
+import { GamificationSection } from "@/components/gamification/gamification-section"
 
 export default function DashboardPage() {
   return (
@@ -44,6 +45,8 @@ export default function DashboardPage() {
           <BookingsTable />
         </div>
       </div>
+
+      <GamificationSection />
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { DevoteeCounter } from "@/components/counter/devotee-counter"
+import { DailyWisdom } from "@/components/notifications/daily-wisdom"
 import Link from "next/link"
 
 export default function Home() {
@@ -27,6 +28,13 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Daily Wisdom */}
+      <section className="py-10 px-4">
+        <div className="max-w-lg mx-auto">
+          <DailyWisdom />
         </div>
       </section>
 

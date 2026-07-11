@@ -4,6 +4,10 @@ import "./globals.css"
 import { Providers } from "@/components/providers"
 import { Navbar } from "@/components/layout/navbar"
 import { ServiceWorkerProvider } from "@/components/providers-sw"
+import { HanumanAssistant } from "@/components/chatbot/hanuman-assistant"
+import { VoiceAssistant } from "@/components/voice/voice-assistant"
+import { VoiceCommandPalette } from "@/components/voice/voice-command-palette"
+import { OfflineIndicator } from "@/components/offline/offline-indicator"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,6 +29,10 @@ export default function RootLayout({
           <Providers>
             <Navbar />
             {children}
+            <HanumanAssistant />
+            <VoiceAssistant />
+            <VoiceCommandPalette />
+            <OfflineIndicator />
           </Providers>
         </ServiceWorkerProvider>
       </body>
