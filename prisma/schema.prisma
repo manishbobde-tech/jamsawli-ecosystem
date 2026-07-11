@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+}
+
 // Multi-tenant: Organization (Temple Trust)
 model Organization {
   id            String    @id @default(cuid())
@@ -20,6 +34,7 @@ model Organization {
 
   temples       Temple[]
   users         User[]
+  applications  TempleApplication[]
 }
 
 // Temple (can have multiple per organization)
@@ -38,6 +53,9 @@ model Temple {
   logo          String?
   images        String[]
   config        Json?     // Temple-specific settings
+  isActive      Boolean   @default(true)
+  isPremium     Boolean   @default(false)
+  featuredUntil DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -48,6 +66,11 @@ model Temple {
   bookings      Booking[]
   events        Event[]
   visits        Visit[]
+  donations     Donation[]
+  commissionConfig CommissionConfig?
+  subscription    TempleSubscription?
+  payouts         Payout[]
+  applications    TempleApplication[]
 }
 
 // Users (Devotees, Admins, Trustees)
@@ -122,6 +145,109 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Platform fee configuration per temple
+model CommissionConfig {
+  id                  String    @id @default(cuid())
+  platformFee         Decimal   @default(0.00)   // Fixed monthly platform fee
+  premiumListingFee   Decimal   @default(0.00)   // Monthly premium listing fee
+  premiumListingActive Boolean  @default(false)
+
+  templeId            String    @unique
+  temple              Temple    @relation(fields: [templeId], references: [id])
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// Temple subscription billing
+model TempleSubscription {
+  id                  String    @id @default(cuid())
+  plan                String    @default("FREE") // FREE, BASIC, PREMIUM
+  platformFee         Decimal   @default(0.00)
+  billingCycle        String    @default("MONTHLY") // MONTHLY, QUARTERLY, YEARLY
+  startDate           DateTime  @default(now())
+  endDate             DateTime?
+  autoRenew           Boolean   @default(true)
+  status              String    @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  paymentMethod       String?
+  lastPaidAt          DateTime?
+  nextBillingAt       DateTime?
+
+  templeId            String    @unique
+  temple              Temple    @relation(fields: [templeId], references: [id])
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// Payouts to temples
+model Payout {
+  id            String    @id @default(cuid())
+  amount        Decimal   @db.Decimal(10, 2)
+  periodStart   DateTime
+  periodEnd     DateTime
+  status        PayoutStatus @default(PENDING)
+
+  // Bank details at time of payout
+  bankAccountNo String?
+  bankIfsc      String?
+  bankName      String?
+  accountHolder String?
+
+  transactionRef String?
+  processedAt   DateTime?
+  processedBy   String?
+  notes         String?
+
+  templeId      String
+  temple        Temple    @relation(fields: [templeId], references: [id])
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Temple onboarding application
+model TempleApplication {
+  id            String    @id @default(cuid())
+  templeName    String
+  templeSlug    String    @unique
+  description   String?
+  address       String?
+  city          String?
+  state         String?
+  pincode       String?
+  phone         String?
+  email         String?
+  website       String?
+
+  contactName   String
+  contactPhone  String
+  contactEmail  String?
+
+  bankAccountNo String?
+  bankIfsc      String?
+  bankName      String?
+  accountHolder String?
+
+  trustName     String?
+  trustRegNo    String?
+  trustDoc      String?
+
+  status        ApplicationStatus @default(PENDING)
+  adminNotes    String?
+  reviewedBy    String?
+  reviewedAt    DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  templeId      String?
+  temple        Temple?   @relation(fields: [templeId], references: [id])
+}
+
 // Poojas (Rituals available for booking)
 model Pooja {
   id            String    @id @default(cuid())
@@ -184,6 +310,9 @@ model Donation {
 
   userId        String
   user          User      @relation(fields: [userId], references: [id])
+
+  templeId      String?
+  temple        Temple?   @relation(fields: [templeId], references: [id])
 }
 
 enum DonationStatus {

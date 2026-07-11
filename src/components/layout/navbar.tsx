@@ -30,11 +30,19 @@ export function Navbar() {
           <Link href="/transparency" className="text-gray-700 hover:text-saffron-600">
             पारदर्शिता
           </Link>
+          <Link href="/admin/temples/new" className="text-gray-700 hover:text-saffron-600">
+            मंदिर पंजीकरण
+          </Link>
           {session ? (
             <>
               <Link href="/dashboard" className="text-gray-700 hover:text-saffron-600">
                 डैशबोर्ड
               </Link>
+              {(session.user as any)?.role === "ADMIN" || (session.user as any)?.role === "SUPER_ADMIN" || (session.user as any)?.role === "TRUSTEE" ? (
+                <Link href="/admin" className="text-gray-700 hover:text-saffron-600">
+                  एडमिन
+                </Link>
+              ) : null}
               <Button variant="outline" onClick={() => signOut()}>
                 लॉगआउट
               </Button>
