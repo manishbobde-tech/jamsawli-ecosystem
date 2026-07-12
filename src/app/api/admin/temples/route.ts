@@ -8,6 +8,11 @@ export async function GET(req: Request) {
     const session = await getServerSession(authOptions)
     if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
 
+    const orgId = (session.user as any).organizationId
+    if (!orgId) {
+      return NextResponse.json({ message: "No organization" }, { status: 403 })
+    }
+
     const user = await prisma.user.findUnique({ where: { id: session.user.id } })
     if (!user || (user.role !== "ADMIN" && user.role !== "TRUSTEE" && user.role !== "SUPER_ADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 })
@@ -22,10 +27,11 @@ export async function GET(req: Request) {
       prisma.temple.findMany({
         skip,
         take: limit,
+        where: { organizationId: orgId },
         orderBy: { createdAt: "desc" },
         include: { _count: { select: { poojas: true, bookings: true, donations: true } } },
       }),
-      prisma.temple.count(),
+      prisma.temple.count({ where: { organizationId: orgId } }),
     ])
 
     return NextResponse.json({ temples, total, page, limit })

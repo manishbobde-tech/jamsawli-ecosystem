@@ -55,6 +55,14 @@ export async function GET() {
       )
     }
 
+    const orgId = (session.user as any).organizationId
+    if (!orgId) {
+      return NextResponse.json(
+        { message: "No organization" },
+        { status: 403 }
+      )
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
     })
@@ -114,85 +122,85 @@ export async function GET() {
       bookingByTemple,
     ] = await Promise.all([
       prisma.donation.aggregate({
-        where: { status: "COMPLETED" },
+        where: { status: "COMPLETED", temple: { organizationId: orgId } },
         _sum: { amount: true },
       }),
       prisma.booking.aggregate({
-        where: { status: "COMPLETED" },
+        where: { status: "COMPLETED", temple: { organizationId: orgId } },
         _sum: { totalAmount: true },
       }),
       prisma.donation.aggregate({
-        where: { status: "PENDING" },
+        where: { status: "PENDING", temple: { organizationId: orgId } },
         _sum: { amount: true },
       }),
       prisma.booking.aggregate({
-        where: { status: "PENDING" },
+        where: { status: "PENDING", temple: { organizationId: orgId } },
         _sum: { totalAmount: true },
       }),
       prisma.donation.aggregate({
-        where: { status: "COMPLETED", createdAt: { gte: startOfMonth } },
+        where: { status: "COMPLETED", createdAt: { gte: startOfMonth }, temple: { organizationId: orgId } },
         _sum: { amount: true },
       }),
       prisma.booking.aggregate({
-        where: { status: "COMPLETED", createdAt: { gte: startOfMonth } },
+        where: { status: "COMPLETED", createdAt: { gte: startOfMonth }, temple: { organizationId: orgId } },
         _sum: { totalAmount: true },
       }),
 
-      prisma.temple.count(),
-      prisma.temple.count({ where: { isActive: true } }),
-      prisma.temple.count({ where: { isPremium: true } }),
-      prisma.templeApplication.count({ where: { status: "PENDING" } }),
+      prisma.temple.count({ where: { organizationId: orgId } }),
+      prisma.temple.count({ where: { isActive: true, organizationId: orgId } }),
+      prisma.temple.count({ where: { isPremium: true, organizationId: orgId } }),
+      prisma.templeApplication.count({ where: { status: "PENDING", organizationId: orgId } }),
 
-      prisma.booking.count(),
-      prisma.booking.count({ where: { status: "COMPLETED" } }),
-      prisma.booking.count({ where: { status: "PENDING" } }),
-      prisma.booking.count({ where: { status: "CANCELLED" } }),
-      prisma.booking.count({ where: { createdAt: { gte: startOfMonth } } }),
+      prisma.booking.count({ where: { temple: { organizationId: orgId } } }),
+      prisma.booking.count({ where: { status: "COMPLETED", temple: { organizationId: orgId } } }),
+      prisma.booking.count({ where: { status: "PENDING", temple: { organizationId: orgId } } }),
+      prisma.booking.count({ where: { status: "CANCELLED", temple: { organizationId: orgId } } }),
+      prisma.booking.count({ where: { createdAt: { gte: startOfMonth }, temple: { organizationId: orgId } } }),
 
-      prisma.donation.count(),
-      prisma.donation.count({ where: { status: "COMPLETED" } }),
-      prisma.donation.count({ where: { status: "FAILED" } }),
-      prisma.donation.count({ where: { status: "REFUNDED" } }),
-      prisma.donation.count({ where: { createdAt: { gte: startOfMonth } } }),
+      prisma.donation.count({ where: { temple: { organizationId: orgId } } }),
+      prisma.donation.count({ where: { status: "COMPLETED", temple: { organizationId: orgId } } }),
+      prisma.donation.count({ where: { status: "FAILED", temple: { organizationId: orgId } } }),
+      prisma.donation.count({ where: { status: "REFUNDED", temple: { organizationId: orgId } } }),
+      prisma.donation.count({ where: { createdAt: { gte: startOfMonth }, temple: { organizationId: orgId } } }),
 
-      prisma.user.count(),
-      prisma.user.count({ where: { createdAt: { gte: startOfMonth } } }),
-      prisma.user.count({ where: { role: "DEVOTEE" } }),
-      prisma.user.count({ where: { role: "ADMIN" } }),
-      prisma.user.count({ where: { role: "TRUSTEE" } }),
-      prisma.user.count({ where: { role: "SUPER_ADMIN" } }),
+      prisma.user.count({ where: { organizationId: orgId } }),
+      prisma.user.count({ where: { createdAt: { gte: startOfMonth }, organizationId: orgId } }),
+      prisma.user.count({ where: { role: "DEVOTEE", organizationId: orgId } }),
+      prisma.user.count({ where: { role: "ADMIN", organizationId: orgId } }),
+      prisma.user.count({ where: { role: "TRUSTEE", organizationId: orgId } }),
+      prisma.user.count({ where: { role: "SUPER_ADMIN", organizationId: orgId } }),
 
       prisma.commissionConfig.aggregate({
-        where: { premiumListingActive: true },
+        where: { premiumListingActive: true, temple: { organizationId: orgId } },
         _sum: { platformFee: true },
       }),
 
       prisma.payout.aggregate({
-        where: { status: "PAID" },
+        where: { status: "PAID", temple: { organizationId: orgId } },
         _sum: { amount: true },
       }),
       prisma.payout.aggregate({
-        where: { status: "PENDING" },
+        where: { status: "PENDING", temple: { organizationId: orgId } },
         _sum: { amount: true },
       }),
 
       prisma.donation.findMany({
-        where: { status: "COMPLETED", createdAt: { gte: startOfSixMonthsAgo } },
+        where: { status: "COMPLETED", createdAt: { gte: startOfSixMonthsAgo }, temple: { organizationId: orgId } },
         select: { amount: true, createdAt: true },
       }),
       prisma.booking.findMany({
-        where: { status: "COMPLETED", createdAt: { gte: startOfSixMonthsAgo } },
+        where: { status: "COMPLETED", createdAt: { gte: startOfSixMonthsAgo }, temple: { organizationId: orgId } },
         select: { totalAmount: true, createdAt: true },
       }),
 
       prisma.donation.groupBy({
         by: ["templeId"],
-        where: { status: "COMPLETED", templeId: { not: null } },
+        where: { status: "COMPLETED", templeId: { not: null }, temple: { organizationId: orgId } },
         _sum: { amount: true },
       }),
       prisma.booking.groupBy({
         by: ["templeId"],
-        where: { status: "COMPLETED" },
+        where: { status: "COMPLETED", temple: { organizationId: orgId } },
         _sum: { totalAmount: true },
       }),
     ])

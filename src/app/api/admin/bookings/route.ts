@@ -14,6 +14,14 @@ export async function GET() {
       )
     }
 
+    const orgId = (session.user as any).organizationId
+    if (!orgId) {
+      return NextResponse.json(
+        { message: "No organization" },
+        { status: 403 }
+      )
+    }
+
     // Check if user is admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -27,6 +35,7 @@ export async function GET() {
     }
 
     const bookings = await prisma.booking.findMany({
+      where: { temple: { organizationId: orgId } },
       include: {
         pooja: { select: { name: true, nameHi: true } },
         user: { select: { name: true, email: true } },

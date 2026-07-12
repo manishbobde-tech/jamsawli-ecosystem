@@ -14,6 +14,14 @@ export async function GET() {
       )
     }
 
+    const orgId = (session.user as any).organizationId
+    if (!orgId) {
+      return NextResponse.json(
+        { message: "No organization" },
+        { status: 403 }
+      )
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
     })
@@ -26,6 +34,7 @@ export async function GET() {
     }
 
     const payouts = await prisma.payout.findMany({
+      where: { temple: { organizationId: orgId } },
       include: {
         temple: { select: { id: true, name: true, slug: true } },
       },
