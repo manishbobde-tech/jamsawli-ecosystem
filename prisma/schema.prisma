@@ -32,9 +32,11 @@ model Organization {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  temples       Temple[]
-  users         User[]
-  applications  TempleApplication[]
+  temples           Temple[]
+  users             User[]
+  applications      TempleApplication[]
+  userOrganizations UserOrganization[]
+  dailyWisdoms      DailyWisdom[]
 }
 
 // Temple (can have multiple per organization)
@@ -59,18 +61,27 @@ model Temple {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  subscriptionPlan     String    @default("basic")
+  subscriptionStatus   String    @default("active")
+  subscriptionEndDate  DateTime?
+
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
-  poojas        Pooja[]
-  bookings      Booking[]
-  events        Event[]
-  visits        Visit[]
-  donations     Donation[]
+  poojas          Pooja[]
+  bookings        Booking[]
+  events          Event[]
+  visits          Visit[]
+  donations       Donation[]
   commissionConfig CommissionConfig?
   subscription    TempleSubscription?
   payouts         Payout[]
   applications    TempleApplication[]
+  userBadges      UserBadge[]
+  userStreaks     UserStreak[]
+  leaderboards    Leaderboard[]
+  sosAlerts       SosAlert[]
+  lostFoundItems  LostFoundItem[]
 }
 
 // Users (Devotees, Admins, Trustees)
@@ -97,9 +108,10 @@ model User {
   sosAlerts     SosAlert[]
   lostFoundItems LostFoundItem[]
   notificationPreference NotificationPreference?
+  userOrganizations UserOrganization[]
 
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
 }
 
 enum UserRole {
@@ -107,6 +119,21 @@ enum UserRole {
   ADMIN
   TRUSTEE
   SUPER_ADMIN
+}
+
+model UserOrganization {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String       @default("DEVOTEE")
+  createdAt      DateTime     @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
 }
 
 model Account {
@@ -374,12 +401,16 @@ model UserBadge {
   id            String    @id @default(cuid())
   earnedAt      DateTime  @default(now())
 
+  templeId  String?
+  temple    Temple?  @relation(fields: [templeId], references: [id])
+
   userId        String
   user          User      @relation(fields: [userId], references: [id])
 
   badgeId       String
   badge         Badge     @relation(fields: [badgeId], references: [id])
 
+  @@index([templeId])
   @@unique([userId, badgeId])
 }
 
@@ -391,9 +422,13 @@ model UserStreak {
   lastActive    DateTime  @updatedAt
   createdAt     DateTime  @default(now())
 
+  templeId  String?
+  temple    Temple?  @relation(fields: [templeId], references: [id])
+
   userId        String
   user          User      @relation(fields: [userId], references: [id])
 
+  @@index([templeId])
   @@unique([userId, type])
 }
 
@@ -404,9 +439,13 @@ model Leaderboard {
   rank          Int?
   updatedAt     DateTime  @updatedAt
 
+  templeId  String?
+  temple    Temple?  @relation(fields: [templeId], references: [id])
+
   userId        String
   user          User      @relation(fields: [userId], references: [id])
 
+  @@index([templeId])
   @@unique([userId, period])
 }
 
@@ -425,12 +464,14 @@ model NotificationPreference {
 }
 
 model DailyWisdom {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   verse         String
   verseHi       String
   source        String
   audioUrl      String?
-  createdAt     DateTime  @default(now())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt     DateTime      @default(now())
 }
 
 // Temple Visit Check-ins
@@ -450,32 +491,41 @@ model Visit {
 
 // Smart Pilgrim Services: Emergency SOS alerts
 model SosAlert {
-  id            String    @id @default(cuid())
-  type          String    @default("MEDICAL") // MEDICAL, SECURITY, FIRE, OTHER
-  location      String?
-  status        String    @default("ACTIVE")  // ACTIVE, RESOLVED, CANCELLED
-  resolvedAt    DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  templeId  String
+  type      String   @default("MEDICAL")
+  location  String   @default("")
+  message   String   @default("")
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  userId        String
-  user          User      @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  temple Temple @relation(fields: [templeId], references: [id])
+
+  @@index([templeId])
+  @@index([status])
 }
 
 // Smart Pilgrim Services: Lost & Found items
 model LostFoundItem {
-  id            String    @id @default(cuid())
-  title         String
-  description   String?
-  photoUrl      String?
-  status        String    @default("LOST")   // LOST, FOUND, CLAIMED, RETURNED
-  location      String?
-  reporterName  String?
-  reporterPhone String?
-  contactInfo   String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  templeId    String
+  type        String   @default("LOST")   // LOST or FOUND
+  description String
+  location    String   @default("")
+  contactInfo String   @default("")
+  status      String   @default("OPEN")   // OPEN, RESOLVED, CLOSED
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  userId        String?
-  user          User?     @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  temple Temple @relation(fields: [templeId], references: [id])
+
+  @@index([templeId])
+  @@index([type])
+  @@index([status])
 }

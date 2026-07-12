@@ -54,7 +54,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           email: application.email || application.contactEmail,
           website: application.website,
           isActive: true,
-          organizationId: user.organizationId,
+          organizationId: (user.organizationId ?? application.organizationId)!,
         },
       })
       templeId = temple.id

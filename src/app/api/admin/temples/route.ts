@@ -58,7 +58,7 @@ export async function POST(req: Request) {
         email: body.email,
         website: body.website,
         isActive: true,
-        organizationId: user.organizationId,
+          organizationId: user.organizationId!,
       },
     })
 
