@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { resolveTemple } from "@/lib/temple"
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url)
+    const templeSlug = searchParams.get("templeSlug")
+
+    const temple = await resolveTemple(templeSlug)
+    const counterName = `daily_visitors:${temple.id}`
+
     let counter = await prisma.counter.findUnique({
-      where: { name: "daily_visitors" },
+      where: { name: counterName },
     })
 
     if (!counter) {
       counter = await prisma.counter.create({
         data: {
-          name: "daily_visitors",
+          name: counterName,
           value: 0,
         },
       })

@@ -1,24 +1,30 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { resolveTemple } from "@/lib/temple"
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url)
+    const templeSlug = searchParams.get("templeSlug")
+
+    const temple = await resolveTemple(templeSlug)
+
     const totalDonations = await prisma.donation.aggregate({
-      where: { status: "COMPLETED" },
+      where: { status: "COMPLETED", templeId: temple.id },
       _sum: { amount: true },
       _count: true,
     })
 
     const categoryBreakdown = await prisma.donation.groupBy({
       by: ["purpose"],
-      where: { status: "COMPLETED" },
+      where: { status: "COMPLETED", templeId: temple.id },
       _sum: { amount: true },
       _count: true,
       orderBy: { _sum: { amount: "desc" } },
     })
 
     const recentDonations = await prisma.donation.findMany({
-      where: { status: "COMPLETED" },
+      where: { status: "COMPLETED", templeId: temple.id },
       orderBy: { createdAt: "desc" },
       take: 10,
       select: {

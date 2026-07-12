@@ -21,14 +21,18 @@ function formatCurrency(amount: number): string {
   return `₹${amount.toLocaleString("en-IN")}`
 }
 
-export function ProjectTracker() {
+interface ProjectTrackerProps {
+  templeSlug?: string
+}
+
+export function ProjectTracker({ templeSlug = "jamsawli-hanuman" }: ProjectTrackerProps) {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/transparency")
+        const res = await fetch(`/api/transparency?templeSlug=${templeSlug}`)
         const json = await res.json()
         setProjects(json.projectProgress || [])
       } catch (error) {

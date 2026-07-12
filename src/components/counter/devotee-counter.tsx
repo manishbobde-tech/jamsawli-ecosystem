@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export function DevoteeCounter() {
+interface DevoteeCounterProps {
+  templeSlug?: string
+}
+
+export function DevoteeCounter({ templeSlug = "jamsawli-hanuman" }: DevoteeCounterProps) {
   const [count, setCount] = useState(0)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
@@ -12,11 +16,11 @@ export function DevoteeCounter() {
     // Poll every 30 seconds
     const interval = setInterval(fetchCount, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [templeSlug])
 
   async function fetchCount() {
     try {
-      const response = await fetch("/api/counter")
+      const response = await fetch(`/api/counter?templeSlug=${templeSlug}`)
       const data = await response.json()
       setCount(data.count)
       setLastUpdated(new Date(data.lastUpdated))

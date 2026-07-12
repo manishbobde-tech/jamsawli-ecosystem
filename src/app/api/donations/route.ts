@@ -15,11 +15,18 @@ export async function POST(req: Request) {
       )
     }
 
-    const { amount, purpose } = await req.json()
+    const { amount, purpose, templeId } = await req.json()
 
     if (!amount || amount < 1) {
       return NextResponse.json(
         { message: "अमान्य राशि" },
+        { status: 400 }
+      )
+    }
+
+    if (!templeId) {
+      return NextResponse.json(
+        { message: "मंदिर चयन आवश्यक है" },
         { status: 400 }
       )
     }
@@ -36,6 +43,7 @@ export async function POST(req: Request) {
         purpose: purpose || "सामान्य दान",
         orderId: order.id,
         userId: session.user.id,
+        templeId,
       },
     })
 

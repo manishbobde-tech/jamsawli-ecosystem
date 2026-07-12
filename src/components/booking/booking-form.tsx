@@ -33,7 +33,11 @@ const timeSlots = [
   "19:00-20:00",
 ]
 
-export function BookingForm() {
+interface BookingFormProps {
+  templeSlug?: string
+}
+
+export function BookingForm({ templeSlug = "jamsawli-hanuman" }: BookingFormProps) {
   const { data: session } = useSession()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -116,7 +120,7 @@ export function BookingForm() {
           <CardTitle className="text-xl text-sacred-maroon">पूजा चुनें</CardTitle>
         </CardHeader>
         <CardContent>
-          <PoojaList onSelect={setSelectedPooja} selectedPooja={selectedPooja} />
+          <PoojaList onSelect={setSelectedPooja} selectedPooja={selectedPooja} templeSlug={templeSlug} />
         </CardContent>
       </Card>
 

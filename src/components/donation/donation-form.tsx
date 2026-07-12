@@ -10,7 +10,11 @@ import { useToast } from "@/hooks/use-toast"
 
 const presetAmounts = [101, 201, 501, 1001, 2001, 5001]
 
-export function DonationForm() {
+interface DonationFormProps {
+  templeId: string
+}
+
+export function DonationForm({ templeId }: DonationFormProps) {
   const { data: session } = useSession()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -31,6 +35,7 @@ export function DonationForm() {
         body: JSON.stringify({
           amount: donationAmount,
           purpose,
+          templeId,
         }),
       })
 

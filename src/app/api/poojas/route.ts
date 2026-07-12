@@ -1,29 +1,13 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { resolveTemple } from "@/lib/temple"
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const org = await prisma.organization.findUnique({
-      where: { slug: "jamsawli" },
-    })
+    const { searchParams } = new URL(req.url)
+    const templeSlug = searchParams.get("templeSlug")
 
-    if (!org) {
-      return NextResponse.json(
-        { message: "Organization not found" },
-        { status: 404 }
-      )
-    }
-
-    const temple = await prisma.temple.findFirst({
-      where: { organizationId: org.id },
-    })
-
-    if (!temple) {
-      return NextResponse.json(
-        { message: "Temple not found" },
-        { status: 404 }
-      )
-    }
+    const temple = await resolveTemple(templeSlug)
 
     const poojas = await prisma.pooja.findMany({
       where: {

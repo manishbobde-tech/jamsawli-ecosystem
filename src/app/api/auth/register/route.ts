@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { resolveOrganization } from "@/lib/temple"
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { name, email, phone, password } = body
+    const { name, email, phone, password, orgSlug } = body
 
     if (!password) {
       return NextResponse.json(
@@ -30,16 +31,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const org = await prisma.organization.findUnique({
-      where: { slug: "jamsawli" },
-    })
-
-    if (!org) {
-      return NextResponse.json(
-        { message: "संगठन नहीं मिला" },
-        { status: 500 }
-      )
-    }
+    const org = await resolveOrganization(orgSlug)
 
     const hashedPassword = await bcrypt.hash(password, 12)
 

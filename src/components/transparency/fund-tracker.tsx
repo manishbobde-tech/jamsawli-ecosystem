@@ -26,14 +26,18 @@ function formatCurrency(amount: number): string {
   return `₹${amount.toLocaleString("en-IN")}`
 }
 
-export function FundTracker() {
+interface FundTrackerProps {
+  templeSlug?: string
+}
+
+export function FundTracker({ templeSlug = "jamsawli-hanuman" }: FundTrackerProps) {
   const [data, setData] = useState<FundData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/transparency")
+        const res = await fetch(`/api/transparency?templeSlug=${templeSlug}`)
         const json = await res.json()
         setData(json)
       } catch (error) {

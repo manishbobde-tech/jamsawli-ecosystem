@@ -17,19 +17,20 @@ interface Pooja {
 interface PoojaListProps {
   onSelect: (pooja: Pooja) => void
   selectedPooja: Pooja | null
+  templeSlug?: string
 }
 
-export function PoojaList({ onSelect, selectedPooja }: PoojaListProps) {
+export function PoojaList({ onSelect, selectedPooja, templeSlug = "jamsawli-hanuman" }: PoojaListProps) {
   const [poojas, setPoojas] = useState<Pooja[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetchPoojas()
-  }, [])
+  }, [templeSlug])
 
   async function fetchPoojas() {
     try {
-      const response = await fetch("/api/poojas")
+      const response = await fetch(`/api/poojas?templeSlug=${templeSlug}`)
       const data = await response.json()
       setPoojas(data.poojas)
     } catch (error) {
