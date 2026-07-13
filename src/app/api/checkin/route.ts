@@ -16,6 +16,9 @@ export async function POST(req: Request) {
     }
 
     const { qrData, templeSlug } = await req.json()
+    if (!templeSlug) {
+      return NextResponse.json({ message: "Temple slug required" }, { status: 400 })
+    }
     const temple = await resolveTemple(templeSlug)
 
     // Parse QR data

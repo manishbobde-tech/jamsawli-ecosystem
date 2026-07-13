@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { PoojaList } from "./pooja-list"
 import { formatPrice } from "@/lib/razorpay"
 import { addDays, format } from "date-fns"
+import { useOptionalTemple } from "@/hooks/useTemple"
 
 interface Pooja {
   id: string
@@ -37,7 +38,9 @@ interface BookingFormProps {
   templeSlug?: string
 }
 
-export function BookingForm({ templeSlug = "jamsawli-hanuman" }: BookingFormProps) {
+export function BookingForm({ templeSlug: propSlug }: BookingFormProps) {
+  const temple = useOptionalTemple()
+  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
   const { data: session } = useSession()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)

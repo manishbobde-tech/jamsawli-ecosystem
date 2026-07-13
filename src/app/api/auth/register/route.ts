@@ -31,6 +31,13 @@ export async function POST(req: Request) {
       )
     }
 
+    if (!orgSlug) {
+      return NextResponse.json(
+        { message: "Organization slug required" },
+        { status: 400 }
+      )
+    }
+
     const org = await resolveOrganization(orgSlug)
 
     const hashedPassword = await bcrypt.hash(password, 12)

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatPrice } from "@/lib/razorpay"
+import { useOptionalTemple } from "@/hooks/useTemple"
 
 interface Pooja {
   id: string
@@ -20,7 +21,9 @@ interface PoojaListProps {
   templeSlug?: string
 }
 
-export function PoojaList({ onSelect, selectedPooja, templeSlug = "jamsawli-hanuman" }: PoojaListProps) {
+export function PoojaList({ onSelect, selectedPooja, templeSlug: propSlug }: PoojaListProps) {
+  const temple = useOptionalTemple()
+  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
   const [poojas, setPoojas] = useState<Pooja[]>([])
   const [isLoading, setIsLoading] = useState(true)
 

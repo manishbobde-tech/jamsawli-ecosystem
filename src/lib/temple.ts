@@ -1,32 +1,25 @@
 import { prisma } from "./prisma"
 
-const DEFAULT_TEMPLE_SLUG = "jamsawli-hanuman"
-const DEFAULT_ORG_SLUG = "jamsawli"
-
-export async function resolveTemple(templeSlug?: string | null) {
-  const slug = templeSlug || DEFAULT_TEMPLE_SLUG
-
+export async function resolveTemple(templeSlug: string) {
   const temple = await prisma.temple.findFirst({
-    where: { slug },
+    where: { slug: templeSlug },
     include: { organization: true },
   })
 
   if (!temple) {
-    throw new Error(`Temple not found: ${slug}`)
+    throw new Error(`Temple not found: ${templeSlug}`)
   }
 
   return temple
 }
 
-export async function resolveOrganization(orgSlug?: string | null) {
-  const slug = orgSlug || DEFAULT_ORG_SLUG
-
+export async function resolveOrganization(orgSlug: string) {
   const org = await prisma.organization.findUnique({
-    where: { slug },
+    where: { slug: orgSlug },
   })
 
   if (!org) {
-    throw new Error(`Organization not found: ${slug}`)
+    throw new Error(`Organization not found: ${orgSlug}`)
   }
 
   return org

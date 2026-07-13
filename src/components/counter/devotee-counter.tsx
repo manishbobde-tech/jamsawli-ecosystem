@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useOptionalTemple } from "@/hooks/useTemple"
 
 interface DevoteeCounterProps {
   templeSlug?: string
 }
 
-export function DevoteeCounter({ templeSlug = "jamsawli-hanuman" }: DevoteeCounterProps) {
+export function DevoteeCounter({ templeSlug: propSlug }: DevoteeCounterProps) {
+  const temple = useOptionalTemple()
+  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
   const [count, setCount] = useState(0)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 

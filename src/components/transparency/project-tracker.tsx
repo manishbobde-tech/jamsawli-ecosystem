@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useOptionalTemple } from "@/hooks/useTemple"
 
 interface Project {
   name: string
@@ -25,7 +26,9 @@ interface ProjectTrackerProps {
   templeSlug?: string
 }
 
-export function ProjectTracker({ templeSlug = "jamsawli-hanuman" }: ProjectTrackerProps) {
+export function ProjectTracker({ templeSlug: propSlug }: ProjectTrackerProps) {
+  const temple = useOptionalTemple()
+  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
 

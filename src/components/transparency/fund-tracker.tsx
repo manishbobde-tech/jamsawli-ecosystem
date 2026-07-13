@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useOptionalTemple } from "@/hooks/useTemple"
 
 interface FundData {
   totalDonations: number
@@ -30,7 +31,9 @@ interface FundTrackerProps {
   templeSlug?: string
 }
 
-export function FundTracker({ templeSlug = "jamsawli-hanuman" }: FundTrackerProps) {
+export function FundTracker({ templeSlug: propSlug }: FundTrackerProps) {
+  const temple = useOptionalTemple()
+  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
   const [data, setData] = useState<FundData | null>(null)
   const [loading, setLoading] = useState(true)
 

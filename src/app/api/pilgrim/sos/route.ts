@@ -5,6 +5,9 @@ import { resolveTemple } from "@/lib/temple"
 export async function POST(req: Request) {
   try {
     const { userId, templeSlug, type, location, message } = await req.json()
+    if (!templeSlug) {
+      return NextResponse.json({ message: "Temple slug required" }, { status: 400 })
+    }
     const temple = await resolveTemple(templeSlug)
 
     const alert = await prisma.sosAlert.create({
@@ -29,6 +32,9 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const templeSlug = searchParams.get("templeSlug")
+    if (!templeSlug) {
+      return NextResponse.json({ message: "Temple slug required" }, { status: 400 })
+    }
     const temple = await resolveTemple(templeSlug)
 
     const alerts = await prisma.sosAlert.findMany({

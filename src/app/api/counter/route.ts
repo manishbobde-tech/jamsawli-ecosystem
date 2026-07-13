@@ -6,6 +6,9 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const templeSlug = searchParams.get("templeSlug")
+    if (!templeSlug) {
+      return NextResponse.json({ message: "Temple slug required" }, { status: 400 })
+    }
 
     const temple = await resolveTemple(templeSlug)
     const counterName = `daily_visitors:${temple.id}`
