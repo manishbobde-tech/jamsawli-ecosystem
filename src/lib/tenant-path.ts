@@ -35,6 +35,7 @@ export const PLATFORM_ROOTS = new Set([
   "demo",
   "for-trustees",
   "help",
+  "legal",
   "certificate",
   "favicon.ico",
   "images",
