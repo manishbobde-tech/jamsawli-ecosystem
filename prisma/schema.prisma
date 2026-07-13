@@ -199,6 +199,7 @@ model TempleSubscription {
   paymentMethod       String?
   lastPaidAt          DateTime?
   nextBillingAt       DateTime?
+  razorpaySubscriptionId String?
 
   templeId            String    @unique
   temple              Temple    @relation(fields: [templeId], references: [id])
