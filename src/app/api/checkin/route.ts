@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { resolveTemple } from "@/lib/temple"
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +15,8 @@ export async function POST(req: Request) {
       )
     }
 
-    const { qrData } = await req.json()
+    const { qrData, templeSlug } = await req.json()
+    const temple = await resolveTemple(templeSlug)
 
     // Parse QR data
     let scannedUserId = session.user.id
@@ -33,6 +35,7 @@ export async function POST(req: Request) {
     const visit = await prisma.visit.create({
       data: {
         userId: session.user.id,
+        templeId: temple.id,
         checkInTime: new Date(),
       },
     })
@@ -54,6 +57,7 @@ export async function POST(req: Request) {
       create: {
         userId: session.user.id,
         type: "visit",
+        templeId: temple.id,
         currentStreak: 1,
         longestStreak: 1,
       },
