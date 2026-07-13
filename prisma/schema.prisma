@@ -43,6 +43,7 @@ model Organization {
 model Temple {
   id            String    @id @default(cuid())
   name          String
+  nameHi        String?
   slug          String    @unique
   description   String?
   address       String?
@@ -54,6 +55,8 @@ model Temple {
   website       String?
   logo          String?
   images        String[]
+  primaryColor  String?
+  secondaryColor String?
   config        Json?     // Temple-specific settings
   isActive      Boolean   @default(true)
   isPremium     Boolean   @default(false)
@@ -82,6 +85,7 @@ model Temple {
   leaderboards    Leaderboard[]
   sosAlerts       SosAlert[]
   lostFoundItems  LostFoundItem[]
+  apiKeys         ApiKey[]
 }
 
 // Users (Devotees, Admins, Trustees)
@@ -529,4 +533,19 @@ model LostFoundItem {
   @@index([templeId])
   @@index([type])
   @@index([status])
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  templeId    String
+  temple      Temple   @relation(fields: [templeId], references: [id], onDelete: Cascade)
+  name        String
+  key         String   @unique
+  scopes      String   @default("read")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime?
+
+  @@index([templeId])
+  @@index([key])
 }

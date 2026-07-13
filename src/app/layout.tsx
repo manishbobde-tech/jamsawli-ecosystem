@@ -29,13 +29,27 @@ export default async function RootLayout({
   const templeSlug = headersList.get("x-tenant-slug")
 
   let templeData = null
+  let temple: {
+    id: string
+    slug: string
+    name: string
+    nameHi: string | null
+    primaryColor: string | null
+    secondaryColor: string | null
+    organizationId: string
+    organization: { name: string }
+  } | null = null
+
   if (templeSlug) {
-    const temple = await prisma.temple.findFirst({
+    temple = await prisma.temple.findFirst({
       where: { slug: templeSlug },
       select: {
         id: true,
         slug: true,
         name: true,
+        nameHi: true,
+        primaryColor: true,
+        secondaryColor: true,
         organizationId: true,
         organization: { select: { name: true } },
       },
@@ -45,15 +59,22 @@ export default async function RootLayout({
         templeId: temple.id,
         templeSlug: temple.slug,
         templeName: temple.name,
-        templeNameHi: temple.name,
+        templeNameHi: temple.nameHi || temple.name,
         organizationId: temple.organizationId,
         organizationName: temple.organization.name,
       }
     }
   }
 
+  const themeStyles = temple?.primaryColor
+    ? ({
+        "--theme-primary": temple.primaryColor,
+        "--theme-secondary": temple.secondaryColor || temple.primaryColor,
+      } as React.CSSProperties)
+    : undefined
+
   return (
-    <html lang="hi">
+    <html lang="hi" style={themeStyles}>
       <body className={inter.className}>
         <TenantProvider temple={templeData}>
           <ServiceWorkerProvider>
