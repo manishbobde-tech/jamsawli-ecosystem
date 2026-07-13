@@ -14,16 +14,16 @@ export const BADGES = {
 
 export type BadgeName = keyof typeof BADGES
 
-async function hasBadge(userId: string, badgeName: string): Promise<boolean> {
+async function hasBadge(userId: string, badgeName: string, templeId?: string): Promise<boolean> {
   const badge = await prisma.badge.findFirst({ where: { name: badgeName } })
   if (!badge) return false
-  const userBadge = await prisma.userBadge.findUnique({
-    where: { userId_badgeId: { userId, badgeId: badge.id } },
+  const userBadge = await prisma.userBadge.findFirst({
+    where: { userId, badgeId: badge.id, ...(templeId ? { templeId } : {}) },
   })
   return !!userBadge
 }
 
-async function awardBadge(userId: string, badgeName: BadgeName) {
+async function awardBadge(userId: string, badgeName: BadgeName, templeId?: string) {
   const badgeData = BADGES[badgeName]
   if (!badgeData) return
 
@@ -39,11 +39,11 @@ async function awardBadge(userId: string, badgeName: BadgeName) {
   })
 
   await prisma.userBadge.create({
-    data: { userId, badgeId: badge.id },
+    data: { userId, badgeId: badge.id, ...(templeId ? { templeId } : {}) },
   })
 }
 
-export async function checkAndAwardBadges(userId: string): Promise<BadgeName[]> {
+export async function checkAndAwardBadges(userId: string, templeId?: string): Promise<BadgeName[]> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { donations: true, bookings: true },
@@ -55,48 +55,48 @@ export async function checkAndAwardBadges(userId: string): Promise<BadgeName[]> 
   const totalDonations = user.donations.reduce((sum, d) => sum + Number(d.amount), 0)
   const totalVisits = user.bookings.filter((b) => b.status === "COMPLETED").length
 
-  if (totalVisits >= 1 && !await hasBadge(userId, "FIRST_VISIT")) {
-    await awardBadge(userId, "FIRST_VISIT")
+  if (totalVisits >= 1 && !await hasBadge(userId, "FIRST_VISIT", templeId)) {
+    await awardBadge(userId, "FIRST_VISIT", templeId)
     newBadges.push("FIRST_VISIT")
   }
 
-  if (totalVisits >= 5 && !await hasBadge(userId, "VISIT_5")) {
-    await awardBadge(userId, "VISIT_5")
+  if (totalVisits >= 5 && !await hasBadge(userId, "VISIT_5", templeId)) {
+    await awardBadge(userId, "VISIT_5", templeId)
     newBadges.push("VISIT_5")
   }
 
-  if (totalVisits >= 10 && !await hasBadge(userId, "VISIT_10")) {
-    await awardBadge(userId, "VISIT_10")
+  if (totalVisits >= 10 && !await hasBadge(userId, "VISIT_10", templeId)) {
+    await awardBadge(userId, "VISIT_10", templeId)
     newBadges.push("VISIT_10")
   }
 
-  if (totalVisits >= 25 && !await hasBadge(userId, "VISIT_25")) {
-    await awardBadge(userId, "VISIT_25")
+  if (totalVisits >= 25 && !await hasBadge(userId, "VISIT_25", templeId)) {
+    await awardBadge(userId, "VISIT_25", templeId)
     newBadges.push("VISIT_25")
   }
 
-  if (totalVisits >= 50 && !await hasBadge(userId, "VISIT_50")) {
-    await awardBadge(userId, "VISIT_50")
+  if (totalVisits >= 50 && !await hasBadge(userId, "VISIT_50", templeId)) {
+    await awardBadge(userId, "VISIT_50", templeId)
     newBadges.push("VISIT_50")
   }
 
-  if (totalDonations >= 100 && !await hasBadge(userId, "DONATION_100")) {
-    await awardBadge(userId, "DONATION_100")
+  if (totalDonations >= 100 && !await hasBadge(userId, "DONATION_100", templeId)) {
+    await awardBadge(userId, "DONATION_100", templeId)
     newBadges.push("DONATION_100")
   }
 
-  if (totalDonations >= 1000 && !await hasBadge(userId, "DONATION_1000")) {
-    await awardBadge(userId, "DONATION_1000")
+  if (totalDonations >= 1000 && !await hasBadge(userId, "DONATION_1000", templeId)) {
+    await awardBadge(userId, "DONATION_1000", templeId)
     newBadges.push("DONATION_1000")
   }
 
   return newBadges
 }
 
-export async function updateStreak(userId: string, type: string) {
+export async function updateStreak(userId: string, type: string, templeId?: string) {
   const now = new Date()
-  const streak = await prisma.userStreak.findUnique({
-    where: { userId_type: { userId, type } },
+  const streak = await prisma.userStreak.findFirst({
+    where: { userId, type, ...(templeId ? { templeId } : {}) },
   })
 
   if (!streak) {
@@ -107,6 +107,7 @@ export async function updateStreak(userId: string, type: string) {
         currentStreak: 1,
         longestStreak: 1,
         lastActive: now,
+        templeId,
       },
     })
   }
@@ -116,7 +117,7 @@ export async function updateStreak(userId: string, type: string) {
 
   if (diffHours > 48) {
     return prisma.userStreak.update({
-      where: { userId_type: { userId, type } },
+      where: { id: streak.id },
       data: {
         currentStreak: 1,
         lastActive: now,
@@ -126,7 +127,7 @@ export async function updateStreak(userId: string, type: string) {
 
   const newStreak = streak.currentStreak + 1
   return prisma.userStreak.update({
-    where: { userId_type: { userId, type } },
+    where: { id: streak.id },
     data: {
       currentStreak: newStreak,
       longestStreak: Math.max(newStreak, streak.longestStreak),
@@ -135,23 +136,26 @@ export async function updateStreak(userId: string, type: string) {
   })
 }
 
-export async function updateLeaderboard(userId: string, score: number, period: string) {
-  return prisma.leaderboard.upsert({
-    where: { userId_period: { userId, period } },
-    update: {
-      score: { increment: score },
-    },
-    create: {
-      userId,
-      period,
-      score,
-    },
+export async function updateLeaderboard(userId: string, score: number, period: string, templeId?: string) {
+  const existing = await prisma.leaderboard.findFirst({
+    where: { userId, period, ...(templeId ? { templeId } : {}) },
+  })
+
+  if (existing) {
+    return prisma.leaderboard.update({
+      where: { id: existing.id },
+      data: { score: { increment: score } },
+    })
+  }
+
+  return prisma.leaderboard.create({
+    data: { userId, period, score, ...(templeId ? { templeId } : {}) },
   })
 }
 
-export async function getLeaderboard(period: string, limit: number = 10) {
+export async function getLeaderboard(period: string, limit: number = 10, templeId?: string) {
   return prisma.leaderboard.findMany({
-    where: { period },
+    where: { period, ...(templeId ? { templeId } : {}) },
     include: {
       user: {
         select: {
@@ -166,9 +170,9 @@ export async function getLeaderboard(period: string, limit: number = 10) {
   })
 }
 
-export async function getUserBadges(userId: string) {
+export async function getUserBadges(userId: string, templeId?: string) {
   return prisma.userBadge.findMany({
-    where: { userId },
+    where: { userId, ...(templeId ? { templeId } : {}) },
     include: {
       badge: true,
     },
@@ -176,8 +180,8 @@ export async function getUserBadges(userId: string) {
   })
 }
 
-export async function getUserStreaks(userId: string) {
+export async function getUserStreaks(userId: string, templeId?: string) {
   return prisma.userStreak.findMany({
-    where: { userId },
+    where: { userId, ...(templeId ? { templeId } : {}) },
   })
 }
