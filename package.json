@@ -10,7 +10,8 @@
     "db:seed-wisdom": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed-daily-wisdom.ts",
     "db:activate-pro": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/activate-anchor-trust-pro.ts",
     "db:seed-demo": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/seed-demo-temples.ts",
-    "db:seed-staff": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/seed-staff.ts"
+    "db:seed-staff": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/seed-staff.ts",
+    "db:seed-full-demo": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/seed-full-demo.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

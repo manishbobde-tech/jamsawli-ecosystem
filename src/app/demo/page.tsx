@@ -84,18 +84,26 @@ export default function DemoHubPage() {
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/demo/walkthrough">
+            <Button className="bg-saffron-500 hover:bg-saffron-600 gap-1">
+              <Sparkles className="h-4 w-4" />
+              {hi ? "पूर्ण वॉकथ्रू (सभी सुविधाएँ)" : "Full walkthrough (all features)"}
+            </Button>
+          </Link>
+          <Link href="/t/demo-full">
+            <Button variant="outline" className="gap-1">
+              <Building2 className="h-4 w-4" />
+              {hi ? "शोकेस मंदिर" : "Showcase mandir"}
+            </Button>
+          </Link>
           <Button
-            className="bg-saffron-500 hover:bg-saffron-600"
+            variant="outline"
             onClick={() => startProductTour("sales")}
           >
-            <Sparkles className="h-4 w-4 mr-1" />
-            {hi ? "सेल्स टूर शुरू" : "Start sales tour"}
+            {hi ? "सेल्स टूर" : "Sales tour"}
           </Button>
           <Link href="/pricing">
-            <Button variant="outline">{hi ? "मूल्य" : "Pricing"}</Button>
-          </Link>
-          <Link href="/admin/temples/new">
-            <Button variant="ghost">{hi ? "अपना मंदिर जोड़ें" : "List your temple"}</Button>
+            <Button variant="ghost">{hi ? "मूल्य" : "Pricing"}</Button>
           </Link>
         </div>
       </section>
