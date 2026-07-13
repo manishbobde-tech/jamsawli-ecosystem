@@ -9,6 +9,7 @@ import { FeatureGate } from "@/components/billing/feature-gate"
 import { DEFAULT_TENANT_SLUG } from "@/lib/tenant-client"
 import { tenantPath } from "@/lib/tenant-path"
 import { PlanId, PLANS } from "@/lib/plans"
+import { useStaffTemple } from "@/hooks/useStaffTemple"
 import { Button } from "@/components/ui/button"
 import {
   IndianRupee,
@@ -56,19 +57,22 @@ interface StatsPayload {
 }
 
 export default function DashboardPage() {
+  const { slug: staffSlug, ready: templeReady } = useStaffTemple()
   const [data, setData] = useState<StatsPayload | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/dashboard/stats?templeSlug=${DEFAULT_TENANT_SLUG}`)
+    if (!templeReady) return
+    setLoading(true)
+    fetch(`/api/dashboard/stats?templeSlug=${staffSlug}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setData(d))
       .finally(() => setLoading(false))
-  }, [])
+  }, [staffSlug, templeReady])
 
   const planId = (data?.entitlements?.planId || "FREE") as PlanId
   const has = (f: string) => data?.entitlements?.features?.includes(f)
-  const slug = data?.temple?.slug || DEFAULT_TENANT_SLUG
+  const slug = data?.temple?.slug || staffSlug || DEFAULT_TENANT_SLUG
 
   if (loading) {
     return (
@@ -124,6 +128,7 @@ export default function DashboardPage() {
   ]
 
   const actions = [
+    { href: "/dashboard/pilot", label: "7-day pilot", icon: ClipboardList, feature: null },
     { href: "/dashboard/money-desk", label: "Money desk", icon: Wallet, feature: "money_desk" },
     { href: "/dashboard/report", label: "Weekly report", icon: FileText, feature: "weekly_report" },
     { href: "/dashboard/poojas", label: "Manage sevas", icon: ListTree, feature: null },

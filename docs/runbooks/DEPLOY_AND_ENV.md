@@ -49,13 +49,16 @@ npm run db:seed-staff     # staff users for demos
 | `NEXT_PUBLIC_APP_URL` | Public site URL (metadata, links) |
 | `NEXT_PUBLIC_DEFAULT_TENANT` | Legacy redirect target (`jamsawli-hanuman`) |
 
-## Payments (required for live donate / billing)
+## Payments (required for live **online** donate)
 
 | Variable | Purpose |
 |----------|---------|
-| `RAZORPAY_KEY_ID` | Server |
-| `RAZORPAY_KEY_SECRET` | Server |
+| `RAZORPAY_KEY_ID` | Server order create |
+| `RAZORPAY_KEY_SECRET` | Server verify + webhook |
 | `NEXT_PUBLIC_RAZORPAY_KEY_ID` | Client checkout |
+
+Without these, **Money desk pilot still works**. Online donate returns clear 503.  
+Health: `/api/health/payments` · Pilot: `/dashboard/pilot` · Runbook: `docs/runbooks/PILOT_7_DAY.md`
 
 ## Weekly report email / Slack / cron
 

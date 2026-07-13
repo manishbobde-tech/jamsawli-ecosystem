@@ -1,8 +1,14 @@
 import Razorpay from "razorpay"
+import { isRazorpayConfigured } from "@/lib/payments"
 
 let _razorpay: Razorpay | null = null
 
 export function getRazorpay(): Razorpay {
+  if (!isRazorpayConfigured()) {
+    throw new Error(
+      "RAZORPAY_NOT_CONFIGURED: Set RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, and NEXT_PUBLIC_RAZORPAY_KEY_ID"
+    )
+  }
   if (!_razorpay) {
     _razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID!,

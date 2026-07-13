@@ -5,9 +5,11 @@ import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { StaffTempleSwitcher } from "@/components/dashboard/staff-temple-switcher"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", labelHi: "डैशबोर्ड" },
+  { href: "/dashboard/pilot", label: "7-day pilot", labelHi: "पायलट" },
   { href: "/dashboard/money-desk", label: "Money desk", labelHi: "मनी डेस्क" },
   { href: "/dashboard/report", label: "Weekly report", labelHi: "रिपोर्ट" },
   { href: "/dashboard/team", label: "Team", labelHi: "टीम" },
@@ -64,9 +66,10 @@ export default function DashboardLayout({
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/demo">
+            <StaffTempleSwitcher />
+            <Link href="/dashboard/pilot">
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
-                Demo
+                Pilot
               </Button>
             </Link>
             <Link href="/">

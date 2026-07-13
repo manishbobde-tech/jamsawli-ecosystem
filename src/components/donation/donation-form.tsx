@@ -134,11 +134,17 @@ export function DonationForm({ templeId, templeName }: DonationFormProps) {
       const data = await response.json()
 
       if (!response.ok) {
+        if (data.code === "RAZORPAY_NOT_CONFIGURED") {
+          throw new Error(
+            data.message ||
+              "Online payments not configured. Use Money desk for counter cash/UPI during pilot."
+          )
+        }
         throw new Error(data.message || "Order creation failed")
       }
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: data.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: data.order.amount,
         currency: "INR",
         name: templeName || "MandirOS Donation",

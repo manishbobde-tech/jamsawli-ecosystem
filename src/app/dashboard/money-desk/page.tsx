@@ -1,22 +1,29 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { DEFAULT_TENANT_SLUG } from "@/lib/tenant-client"
 import { FeatureGate } from "@/components/billing/feature-gate"
 import { PlanId } from "@/lib/plans"
-import { IndianRupee, Printer, Wallet } from "lucide-react"
+import { useStaffTemple } from "@/hooks/useStaffTemple"
+import { IndianRupee, Printer, Wallet, ClipboardList } from "lucide-react"
 
 export default function MoneyDeskPage() {
   const { toast } = useToast()
+  const { slug, ready } = useStaffTemple()
   const [planId, setPlanId] = useState<PlanId>("FREE")
   const [allowed, setAllowed] = useState(true)
   const [loading, setLoading] = useState(true)
-  const [today, setToday] = useState({ cash: 0, online: 0, total: 0, cashCount: 0, onlineCount: 0 })
+  const [today, setToday] = useState({
+    cash: 0,
+    online: 0,
+    total: 0,
+    cashCount: 0,
+    onlineCount: 0,
+  })
   const [amount, setAmount] = useState("")
   const [donorName, setDonorName] = useState("")
   const [purpose, setPurpose] = useState("सामान्य दान")
@@ -26,19 +33,18 @@ export default function MoneyDeskPage() {
   const [lastReceipt, setLastReceipt] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  async function load() {
+  const load = useCallback(async () => {
+    if (!ready) return
     setLoading(true)
     try {
-      const ent = await fetch(
-        `/api/temple/entitlements?templeSlug=${DEFAULT_TENANT_SLUG}`
-      ).then((r) => (r.ok ? r.json() : null))
+      const ent = await fetch(`/api/temple/entitlements?templeSlug=${slug}`).then(
+        (r) => (r.ok ? r.json() : null)
+      )
       if (ent) {
         setPlanId(ent.planId)
         setAllowed((ent.features || []).includes("money_desk"))
       }
-      const res = await fetch(
-        `/api/admin/money-desk?templeSlug=${DEFAULT_TENANT_SLUG}`
-      )
+      const res = await fetch(`/api/admin/money-desk?templeSlug=${slug}`)
       if (res.status === 402) {
         setAllowed(false)
         return
@@ -50,11 +56,11 @@ export default function MoneyDeskPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [slug, ready])
 
   useEffect(() => {
     load()
-  }, [])
+  }, [load])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -64,7 +70,7 @@ export default function MoneyDeskPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          templeSlug: DEFAULT_TENANT_SLUG,
+          templeSlug: slug,
           amount: Number(amount),
           donorName,
           purpose,
@@ -78,7 +84,7 @@ export default function MoneyDeskPage() {
       setLastReceipt(data.receiptUrl)
       toast({
         title: "✓ दर्ज",
-        description: `₹${amount} · Receipt ${data.donation?.receiptNumber}`,
+        description: `₹${amount} · ${slug} · ${data.donation?.receiptNumber}`,
       })
       setAmount("")
       setDonorName("")
@@ -94,8 +100,10 @@ export default function MoneyDeskPage() {
     }
   }
 
-  if (loading) {
-    return <div className="py-16 text-center text-gray-500">Loading money desk…</div>
+  if (!ready || loading) {
+    return (
+      <div className="py-16 text-center text-gray-500">Loading money desk…</div>
+    )
   }
 
   if (!allowed) {
@@ -104,15 +112,24 @@ export default function MoneyDeskPage() {
 
   return (
     <div className="space-y-8 max-w-3xl">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-sacred-maroon flex items-center gap-2">
-          <Wallet className="h-7 w-7" />
-          Counter Money Desk
-        </h1>
-        <p className="text-gray-500 mt-1">
-          10-second counter receipt — the reason clerks open MandirOS every day.
-          Cash + UPI counter both create a real donation receipt.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-sacred-maroon flex items-center gap-2">
+            <Wallet className="h-7 w-7" />
+            Counter Money Desk
+          </h1>
+          <p className="text-gray-500 mt-1 text-sm">
+            Temple: <code className="text-xs bg-stone-100 px-1.5 py-0.5 rounded">{slug}</code>
+            {" · "}
+            No Razorpay needed for cash / counter UPI — log here in ~10s.
+          </p>
+        </div>
+        <Link href="/dashboard/pilot">
+          <Button variant="outline" size="sm" className="gap-1">
+            <ClipboardList className="h-4 w-4" />
+            7-day pilot
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -158,7 +175,7 @@ export default function MoneyDeskPage() {
           <div className="space-y-1">
             <Label>Mode</Label>
             <select
-              className="flex h-10 w-full rounded-md border px-3 text-sm"
+              className="flex h-12 w-full rounded-xl border border-stone-200 px-3 text-sm"
               value={mode}
               onChange={(e) => setMode(e.target.value)}
             >
@@ -226,8 +243,10 @@ export default function MoneyDeskPage() {
       </form>
 
       <p className="text-xs text-gray-500">
-        This is the product temples pay to keep. Not AI. Not gamification.{" "}
-        <strong>Daily money control.</strong>
+        Pilot success = clerk opens this screen daily for 7 days — not more demos.{" "}
+        <Link href="/dashboard/pilot" className="text-saffron-700 underline">
+          Track checklist →
+        </Link>
       </p>
     </div>
   )

@@ -4,9 +4,9 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DEFAULT_TENANT_SLUG } from "@/lib/tenant-client"
 import { FeatureGate } from "@/components/billing/feature-gate"
 import { PlanId } from "@/lib/plans"
+import { useStaffTemple } from "@/hooks/useStaffTemple"
 import {
   FileBarChart,
   Printer,
@@ -51,6 +51,7 @@ interface NotifyConfig {
 
 export default function WeeklyReportPage() {
   const { toast } = useToast()
+  const { slug: templeSlug, ready: templeReady } = useStaffTemple()
   const [report, setReport] = useState<WeeklyReport | null>(null)
   const [planId, setPlanId] = useState<PlanId>("FREE")
   const [allowed, setAllowed] = useState(true)
@@ -65,16 +66,17 @@ export default function WeeklyReportPage() {
   const [providers, setProviders] = useState({ resend: false, slackEnv: false })
 
   useEffect(() => {
+    if (!templeReady) return
     async function load() {
       setLoading(true)
       try {
         const res = await fetch(
-          `/api/admin/reports/weekly?templeSlug=${DEFAULT_TENANT_SLUG}`
+          `/api/admin/reports/weekly?templeSlug=${templeSlug}`
         )
         if (res.status === 402) {
           setAllowed(false)
           const ent = await fetch(
-            `/api/temple/entitlements?templeSlug=${DEFAULT_TENANT_SLUG}`
+            `/api/temple/entitlements?templeSlug=${templeSlug}`
           ).then((r) => (r.ok ? r.json() : null))
           if (ent) setPlanId(ent.planId)
           return
@@ -86,7 +88,7 @@ export default function WeeklyReportPage() {
         }
 
         const nRes = await fetch(
-          `/api/admin/notifications?templeSlug=${DEFAULT_TENANT_SLUG}`
+          `/api/admin/notifications?templeSlug=${templeSlug}`
         )
         if (nRes.ok) {
           const n = await nRes.json()
@@ -101,7 +103,7 @@ export default function WeeklyReportPage() {
       }
     }
     load()
-  }, [])
+  }, [templeSlug, templeReady])
 
   async function share() {
     if (!report) return
@@ -126,7 +128,7 @@ export default function WeeklyReportPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          templeSlug: DEFAULT_TENANT_SLUG,
+          templeSlug,
           emails,
           slackWebhookUrl,
           autoSendEnabled,
@@ -164,7 +166,7 @@ export default function WeeklyReportPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          templeSlug: DEFAULT_TENANT_SLUG,
+          templeSlug,
           emails: emails
             .split(/[,;\s]+/)
             .map((e) => e.trim())

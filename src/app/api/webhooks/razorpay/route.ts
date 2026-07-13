@@ -5,14 +5,21 @@ import crypto from "crypto"
 
 export async function POST(req: Request) {
   const body = await req.text()
-  const signature = (await headers()).get("x-razorpay-signature")!
+  const secret = process.env.RAZORPAY_KEY_SECRET?.trim()
+  if (!secret) {
+    return NextResponse.json(
+      { message: "Razorpay not configured" },
+      { status: 503 }
+    )
+  }
 
+  const signature = (await headers()).get("x-razorpay-signature") || ""
   const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+    .createHmac("sha256", secret)
     .update(body)
     .digest("hex")
 
-  if (signature !== expectedSignature) {
+  if (!signature || signature !== expectedSignature) {
     return NextResponse.json(
       { message: "Invalid signature" },
       { status: 400 }

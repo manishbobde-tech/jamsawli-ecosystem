@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { razorpay } from "@/lib/razorpay"
+import { isRazorpayConfigured, paymentStatusPayload } from "@/lib/payments"
 
 function makeReceiptNumber() {
   const d = new Date()
@@ -72,18 +73,43 @@ export async function POST(req: Request) {
       }
     }
 
+    if (!isRazorpayConfigured()) {
+      return NextResponse.json(
+        {
+          message:
+            "Online payments are not configured yet. Counter money desk still works for the pilot.",
+          code: "RAZORPAY_NOT_CONFIGURED",
+          payments: paymentStatusPayload(),
+        },
+        { status: 503 }
+      )
+    }
+
     const receiptNumber = makeReceiptNumber()
 
-    const order = await razorpay.orders.create({
-      amount: Math.round(Number(amount) * 100),
-      currency: "INR",
-      receipt: receiptNumber.slice(0, 40),
-      notes: {
-        templeId,
-        purpose: purpose || "सामान्य दान",
-        want80G: want80G ? "true" : "false",
-      },
-    })
+    let order: { id: string; amount: number | string; currency: string }
+    try {
+      order = (await razorpay.orders.create({
+        amount: Math.round(Number(amount) * 100),
+        currency: "INR",
+        receipt: receiptNumber.slice(0, 40),
+        notes: {
+          templeId,
+          purpose: purpose || "सामान्य दान",
+          want80G: want80G ? "true" : "false",
+        },
+      })) as { id: string; amount: number | string; currency: string }
+    } catch (rzErr) {
+      console.error("Razorpay order create failed", rzErr)
+      return NextResponse.json(
+        {
+          message:
+            "Razorpay order failed. Check keys (test vs live) and amount.",
+          code: "RAZORPAY_ORDER_FAILED",
+        },
+        { status: 502 }
+      )
+    }
 
     const donation = await prisma.donation.create({
       data: {
@@ -105,6 +131,7 @@ export async function POST(req: Request) {
       order,
       donationId: donation.id,
       receiptNumber,
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
     })
   } catch (error) {
     console.error("Donation error:", error)

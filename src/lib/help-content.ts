@@ -272,6 +272,27 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    id: "pilot-7-day",
+    title: "7-day pilot (real value, one temple)",
+    audience: ["trustee", "clerk", "employee", "sales", "cs"],
+    summary: "Money desk habit first — no more demos until Day 7 board decision.",
+    body: [
+      "In-app: Dashboard → 7-day pilot (or /dashboard/pilot).",
+      "Primary temple: jamsawli-hanuman via staff temple switcher in header.",
+      "Day 1–2: counter money desk only (no Razorpay required).",
+      "Day 3: online donate if Razorpay keys set — else document blocked (honest).",
+      "Day 5–6: weekly report + transparency to a trustee.",
+      "Day 7: Free stay / Growth / pause — written.",
+      "Do not create more demo temples until pilot decision.",
+      "Payment health: /api/health/payments · docs/runbooks/PILOT_7_DAY.md",
+    ],
+    links: [
+      { label: "Pilot checklist", href: "/dashboard/pilot" },
+      { label: "Money desk", href: "/dashboard/money-desk" },
+      { label: "Jamsawli tenant", href: "/t/jamsawli-hanuman" },
+    ],
+  },
+  {
     id: "weekly-report-autosend",
     title: "Weekly report: email, Slack, Monday auto-send",
     audience: ["trustee", "it", "employee", "cs"],

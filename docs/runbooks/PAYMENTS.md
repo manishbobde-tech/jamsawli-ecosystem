@@ -4,8 +4,11 @@
 
 | Mode | When |
 |------|------|
-| **Live** | `RAZORPAY_*` set; real money |
-| **Demo order** | Keys missing/fail; bookings may confirm with `demo_order_*` |
+| **Live** | `RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET` + `NEXT_PUBLIC_RAZORPAY_KEY_ID` set |
+| **Unconfigured** | Keys missing → `POST /api/donations` returns **503** with `code: RAZORPAY_NOT_CONFIGURED` (honest failure, not fake success) |
+| **Money desk** | Always available — cash/counter UPI **does not** use Razorpay |
+
+Check: `GET /api/health/payments`
 
 ## Donate path
 
