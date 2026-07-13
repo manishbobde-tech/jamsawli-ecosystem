@@ -1,23 +1,67 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import type { Metadata, Viewport } from "next"
+import { Inter, Noto_Sans_Devanagari } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
-import { Navbar } from "@/components/layout/navbar"
 import { ServiceWorkerProvider } from "@/components/providers-sw"
-import { HanumanAssistant } from "@/components/chatbot/hanuman-assistant"
-import { VoiceAssistant } from "@/components/voice/voice-assistant"
-import { VoiceCommandPalette } from "@/components/voice/voice-command-palette"
-import { OfflineIndicator } from "@/components/offline/offline-indicator"
 import { headers } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { TenantProvider } from "@/lib/tenant-context"
+import { AppShell } from "@/components/layout/app-shell"
+import { cn } from "@/lib/utils"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+})
+
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-hindi",
+  display: "swap",
+})
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fff7ed" },
+    { media: "(prefers-color-scheme: dark)", color: "#7f1d1d" },
+  ],
+}
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXTAUTH_URL ||
+  "https://jamsawli-ecosystem.vercel.app"
 
 export const metadata: Metadata = {
-  title: "जामसावली हनुमान लोक - Where Faith Meets Innovation",
-  description: "चमत्कारिक श्री हनुमान मंदिर का डिजिटल पारिस्थितिकी तंत्र",
-  keywords: ["jamsawli", "hanuman", "mandir", "temple", "donation", "booking"],
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "MandirOS — Digital trust layer for temples",
+    template: "%s · MandirOS",
+  },
+  description:
+    "MandirOS helps temples take UPI donations, book sevas, run a counter money desk, and share public fund transparency. Spin up any temple as a tenant.",
+  applicationName: "MandirOS",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MandirOS",
+  },
+  formatDetection: { telephone: true },
+  openGraph: {
+    title: "MandirOS — Digital trust layer for temples",
+    description:
+      "Multi-tenant temple platform: donate, book, money desk, weekly reports, transparency.",
+    locale: "en_IN",
+    type: "website",
+    url: siteUrl,
+  },
+  manifest: "/manifest.json",
 }
 
 export default async function RootLayout({
@@ -27,6 +71,9 @@ export default async function RootLayout({
 }) {
   const headersList = headers()
   const templeSlug = headersList.get("x-tenant-slug")
+  const shell = headersList.get("x-shell") || "platform"
+  const isEmbedShell =
+    headersList.get("x-embed-shell") === "1" || shell === "embed"
 
   let templeData = null
   let temple: {
@@ -41,28 +88,32 @@ export default async function RootLayout({
   } | null = null
 
   if (templeSlug) {
-    temple = await prisma.temple.findFirst({
-      where: { slug: templeSlug },
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        nameHi: true,
-        primaryColor: true,
-        secondaryColor: true,
-        organizationId: true,
-        organization: { select: { name: true } },
-      },
-    })
-    if (temple) {
-      templeData = {
-        templeId: temple.id,
-        templeSlug: temple.slug,
-        templeName: temple.name,
-        templeNameHi: temple.nameHi || temple.name,
-        organizationId: temple.organizationId,
-        organizationName: temple.organization.name,
+    try {
+      temple = await prisma.temple.findFirst({
+        where: { slug: templeSlug, isActive: true },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          nameHi: true,
+          primaryColor: true,
+          secondaryColor: true,
+          organizationId: true,
+          organization: { select: { name: true } },
+        },
+      })
+      if (temple) {
+        templeData = {
+          templeId: temple.id,
+          templeSlug: temple.slug,
+          templeName: temple.name,
+          templeNameHi: temple.nameHi || temple.name,
+          organizationId: temple.organizationId,
+          organizationName: temple.organization.name,
+        }
       }
+    } catch {
+      /* build-time DB may be down */
     }
   }
 
@@ -74,17 +125,33 @@ export default async function RootLayout({
     : undefined
 
   return (
-    <html lang="hi" style={themeStyles}>
-      <body className={inter.className}>
+    <html
+      lang="en"
+      style={themeStyles}
+      className={cn(inter.variable, notoDevanagari.variable)}
+    >
+      <body
+        className={cn(
+          inter.className,
+          "font-sans",
+          isEmbedShell && "embed-shell"
+        )}
+      >
         <TenantProvider temple={templeData}>
           <ServiceWorkerProvider>
             <Providers>
-              <Navbar />
-              {children}
-              <HanumanAssistant />
-              <VoiceAssistant />
-              <VoiceCommandPalette />
-              <OfflineIndicator />
+              <AppShell
+                shell={
+                  isEmbedShell
+                    ? "embed"
+                    : shell === "tenant" || templeData
+                      ? "tenant"
+                      : "platform"
+                }
+                temple={templeData}
+              >
+                {children}
+              </AppShell>
             </Providers>
           </ServiceWorkerProvider>
         </TenantProvider>

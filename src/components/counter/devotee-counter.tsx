@@ -1,4 +1,5 @@
 "use client"
+import { DEFAULT_TENANT_SLUG } from "@/lib/tenant-client"
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,7 +11,7 @@ interface DevoteeCounterProps {
 
 export function DevoteeCounter({ templeSlug: propSlug }: DevoteeCounterProps) {
   const temple = useOptionalTemple()
-  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
+  const templeSlug = propSlug || temple?.templeSlug || DEFAULT_TENANT_SLUG
   const [count, setCount] = useState(0)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 

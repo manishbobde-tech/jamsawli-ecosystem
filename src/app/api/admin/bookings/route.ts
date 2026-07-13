@@ -44,7 +44,13 @@ export async function GET() {
       take: 50,
     })
 
-    return NextResponse.json({ bookings })
+    return NextResponse.json({
+      bookings: bookings.map((b) => ({
+        ...b,
+        totalAmount: Number(b.totalAmount),
+        certificateUrl: `/certificate/${b.id}`,
+      })),
+    })
   } catch (error) {
     return NextResponse.json(
       { message: "Failed to fetch bookings" },

@@ -1,31 +1,57 @@
-import { getOpenAI, HANUMAN_SYSTEM_PROMPT } from "@/lib/openai"
+import { getOpenAI, HANUMAN_SYSTEM_PROMPT, localTempleAnswer } from "@/lib/openai"
+import { assertFeature } from "@/lib/entitlements"
+import { getDefaultTempleSlug } from "@/lib/tenant"
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json()
+    const body = await req.json()
+    const messages = body.messages as Array<{ role: string; content: string }>
+    const templeSlug = body.templeSlug || getDefaultTempleSlug()
+    const lastUser = [...(messages || [])]
+      .reverse()
+      .find((m) => m.role === "user")?.content
+
+    const gate = await assertFeature(templeSlug, "ai_chatbot")
     const openai = getOpenAI()
 
+    if (!gate.ok || !openai) {
+      const text = lastUser
+        ? localTempleAnswer(lastUser) +
+          (!gate.ok
+            ? "\n\n💡 Full streaming AI unlocks on Trust Pro — /dashboard/billing"
+            : "")
+        : "🙏 जय श्री हनुमान!"
+      return new Response(text, {
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      })
+    }
+
     const stream = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      stream: true,
       messages: [
         { role: "system", content: HANUMAN_SYSTEM_PROMPT },
-        ...messages,
+        ...(messages || []).map((m) => ({
+          role: m.role as "user" | "assistant" | "system",
+          content: m.content,
+        })),
       ],
       max_tokens: 500,
-      temperature: 0.7,
-      stream: true,
     })
 
     const encoder = new TextEncoder()
     const readable = new ReadableStream({
       async start(controller) {
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content
-          if (content) {
-            controller.enqueue(encoder.encode(content))
+        try {
+          for await (const chunk of stream) {
+            const text = chunk.choices[0]?.delta?.content || ""
+            if (text) controller.enqueue(encoder.encode(text))
           }
+        } catch (e) {
+          console.error(e)
+        } finally {
+          controller.close()
         }
-        controller.close()
       },
     })
 
@@ -36,7 +62,10 @@ export async function POST(req: Request) {
       },
     })
   } catch (error) {
-    console.error("Stream error:", error)
-    return new Response("Stream error", { status: 500 })
+    console.error("Stream chat error:", error)
+    return new Response("🙏 Service temporarily unavailable.", {
+      status: 200,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    })
   }
 }

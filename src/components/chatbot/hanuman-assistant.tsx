@@ -180,7 +180,7 @@ export function HanumanAssistant() {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 rounded-full w-14 h-14 bg-saffron-500 hover:bg-saffron-600 shadow-lg z-50"
+        className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-6 right-3 sm:right-6 rounded-full w-14 h-14 bg-saffron-500 hover:bg-saffron-600 shadow-xl shadow-saffron-500/30 z-40 no-print"
         size="icon"
       >
         <MessageCircle className="w-6 h-6" />
@@ -189,7 +189,7 @@ export function HanumanAssistant() {
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-[500px] flex flex-col shadow-2xl z-50 overflow-hidden">
+    <Card className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-6 right-2 left-2 sm:left-auto sm:right-6 sm:w-96 h-[min(70dvh,500px)] sm:h-[500px] flex flex-col shadow-2xl z-40 overflow-hidden no-print rounded-2xl border-saffron-100">
       <div className="bg-saffron-500 text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🙏</span>

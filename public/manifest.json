@@ -1,14 +1,21 @@
 {
-  "name": "जामसावली हनुमान लोक",
-  "short_name": "Jamsawli Hanuman Lok",
-  "description": "Where Faith Meets Innovation - चमत्कारिक श्री हनुमान मंदिर का डिजिटल पारिस्थितिकी तंत्र",
+  "name": "MandirOS · जामसावली हनुमान लोक",
+  "short_name": "MandirOS",
+  "description": "Temple trust layer — donate, book, money desk, transparency",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#FF6B35",
+  "background_color": "#fff7ed",
+  "theme_color": "#ea580c",
   "orientation": "portrait-primary",
   "lang": "hi",
+  "categories": ["lifestyle", "finance"],
   "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

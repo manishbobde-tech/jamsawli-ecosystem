@@ -1,4 +1,5 @@
 "use client"
+import { DEFAULT_TENANT_SLUG } from "@/lib/tenant-client"
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,7 +29,7 @@ interface ProjectTrackerProps {
 
 export function ProjectTracker({ templeSlug: propSlug }: ProjectTrackerProps) {
   const temple = useOptionalTemple()
-  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
+  const templeSlug = propSlug || temple?.templeSlug || DEFAULT_TENANT_SLUG
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
 

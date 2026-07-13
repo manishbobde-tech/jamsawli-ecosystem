@@ -1,4 +1,5 @@
 "use client"
+import { DEFAULT_TENANT_SLUG } from "@/lib/tenant-client"
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,8 +34,11 @@ interface FundTrackerProps {
 
 export function FundTracker({ templeSlug: propSlug }: FundTrackerProps) {
   const temple = useOptionalTemple()
-  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
+  const templeSlug = propSlug || temple?.templeSlug || DEFAULT_TENANT_SLUG
   const [data, setData] = useState<FundData | null>(null)
+  const [campaigns, setCampaigns] = useState<
+    Array<{ id: string; title: string; titleHi?: string; target: number; raised?: number }>
+  >([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -43,6 +47,11 @@ export function FundTracker({ templeSlug: propSlug }: FundTrackerProps) {
         const res = await fetch(`/api/transparency?templeSlug=${templeSlug}`)
         const json = await res.json()
         setData(json)
+        const cRes = await fetch(`/api/admin/campaigns?templeSlug=${templeSlug}`)
+        if (cRes.ok) {
+          const cJson = await cRes.json()
+          setCampaigns(cJson.campaigns || [])
+        }
       } catch (error) {
         console.error("Failed to fetch transparency data:", error)
       } finally {
@@ -53,7 +62,7 @@ export function FundTracker({ templeSlug: propSlug }: FundTrackerProps) {
     fetchData()
     const interval = setInterval(fetchData, 5 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [templeSlug])
 
   if (loading) {
     return (
@@ -73,6 +82,37 @@ export function FundTracker({ templeSlug: propSlug }: FundTrackerProps) {
 
   return (
     <div className="space-y-6">
+      {campaigns.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-sacred-maroon">
+            Campaign goals · दान अभियान
+          </h3>
+          {campaigns.map((c) => {
+            const raised = c.raised || 0
+            const pct = Math.min(100, Math.round((raised / c.target) * 100) || 0)
+            return (
+              <Card key={c.id} className="border-saffron-100">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-medium">{c.titleHi || c.title}</span>
+                    <span className="text-stone-500">
+                      {formatCurrency(raised)} / {formatCurrency(c.target)}
+                    </span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-stone-100 overflow-hidden">
+                    <div
+                      className="h-full bg-saffron-500 rounded-full transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-stone-400 mt-1">{pct}% funded</p>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
       {/* Summary Cards */}
       <div className="grid md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-br from-saffron-50 to-white border-saffron-200">

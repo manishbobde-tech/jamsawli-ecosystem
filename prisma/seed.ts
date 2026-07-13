@@ -9,13 +9,30 @@ async function main() {
       name: "चमत्कारिक श्री हनुमान मंदिर संस्थान",
       slug: "jamsawli",
       description: "Chamatkarik Shri Hanuman Mandir Sansthan (Hanuman Lok), Jamsawli",
+      config: {
+        trust: {
+          trustLegalName: "Chamatkarik Shri Hanuman Mandir Sansthan (Hanuman Lok)",
+          trustLegalNameHi: "चमत्कारिक श्री हनुमान मंदिर संस्थान",
+          registrationNumber: "CONFIGURE-WITH-TRUST-DOCS",
+          eightyGNumber: "CONFIGURE-WITH-TRUST-DOCS",
+          panNumber: "CONFIGURE",
+          address: "Village Sawli, Saunsar",
+          city: "Chhindwara",
+          state: "Madhya Pradesh",
+          pincode: "480337",
+          authorizedSignatory: "Authorized Trustee",
+          contactEmail: "office@jamsawlihanumanmandir.com",
+          contactPhone: "+91 94221 82393",
+        },
+      },
     },
   })
 
-  // Create Temple
+  // Create Temple — anchor showcase runs on Trust Pro (all features on)
   const temple = await prisma.temple.create({
     data: {
       name: "चमत्कारिक श्री हनुमान मंदिर",
+      nameHi: "चमत्कारिक श्री हनुमान मंदिर",
       slug: "jamsawli-hanuman",
       description: "Swayambhu Hanuman idol at Jam-Sarpa river confluence",
       address: "Village Sawli, Saunsar",
@@ -25,6 +42,23 @@ async function main() {
       phone: "+91 94221 82393",
       email: "office@jamsawlihanumanmandir.com",
       organizationId: org.id,
+      subscriptionPlan: "TRUST_PRO",
+      subscriptionStatus: "active",
+      isPremium: true,
+      primaryColor: "#c2410c",
+      secondaryColor: "#7f1d1d",
+    },
+  })
+
+  await prisma.templeSubscription.create({
+    data: {
+      templeId: temple.id,
+      plan: "TRUST_PRO",
+      status: "ACTIVE",
+      platformFee: 7999,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      autoRenew: true,
     },
   })
 

@@ -1,13 +1,15 @@
 import { prisma } from "./prisma"
+import { getDefaultTempleSlug } from "./tenant"
 
-export async function resolveTemple(templeSlug: string) {
+export async function resolveTemple(templeSlug?: string | null) {
+  const slug = templeSlug || getDefaultTempleSlug()
   const temple = await prisma.temple.findFirst({
-    where: { slug: templeSlug },
+    where: { slug, isActive: true },
     include: { organization: true },
   })
 
   if (!temple) {
-    throw new Error(`Temple not found: ${templeSlug}`)
+    throw new Error(`Temple not found: ${slug}`)
   }
 
   return temple

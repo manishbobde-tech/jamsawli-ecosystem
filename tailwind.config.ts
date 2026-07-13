@@ -74,7 +74,13 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        hindi: ["Noto Sans Devanagari", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        hindi: ["var(--font-hindi)", "Noto Sans Devanagari", "sans-serif"],
+      },
+      boxShadow: {
+        soft: "0 8px 30px rgb(28 25 23 / 0.06)",
+        glow: "0 8px 24px rgb(249 115 22 / 0.25)",
+        float: "0 16px 48px rgb(28 25 23 / 0.12)",
       },
       keyframes: {
         "accordion-down": {

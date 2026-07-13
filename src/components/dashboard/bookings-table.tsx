@@ -12,14 +12,19 @@ interface Booking {
   time: string
   status: string
   totalAmount: any
+  devoteeName?: string | null
+  gotra?: string | null
+  phone?: string | null
+  sankalp?: string | null
+  certificateUrl?: string
   pooja: {
     nameHi: string | null
     name: string
   }
-  user: {
+  user?: {
     name: string | null
     email: string | null
-  }
+  } | null
 }
 
 export function BookingsTable() {
@@ -63,8 +68,14 @@ export function BookingsTable() {
           <TableRow key={booking.id}>
             <TableCell>
               <div>
-                <div className="font-medium">{booking.user.name || "अज्ञात"}</div>
-                <div className="text-sm text-gray-500">{booking.user.email}</div>
+                <div className="font-medium">
+                  {booking.devoteeName || booking.user?.name || "अतिथि"}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {booking.gotra
+                    ? `गोत्र: ${booking.gotra}`
+                    : booking.user?.email || booking.phone || "—"}
+                </div>
               </div>
             </TableCell>
             <TableCell>{booking.pooja.nameHi || booking.pooja.name}</TableCell>
@@ -72,9 +83,19 @@ export function BookingsTable() {
             <TableCell>{booking.time}</TableCell>
             <TableCell className="font-medium">{formatPrice(Number(booking.totalAmount))}</TableCell>
             <TableCell>
-              <Badge variant={booking.status === "CONFIRMED" ? "default" : "secondary"}>
-                {booking.status === "CONFIRMED" ? "पुष्ट" : "लंबित"}
-              </Badge>
+              <div className="flex flex-col gap-1">
+                <Badge variant={booking.status === "CONFIRMED" ? "default" : "secondary"}>
+                  {booking.status === "CONFIRMED" ? "पुष्ट" : booking.status}
+                </Badge>
+                <a
+                  href={booking.certificateUrl || `/certificate/${booking.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[10px] text-saffron-700 hover:underline"
+                >
+                  Certificate
+                </a>
+              </div>
             </TableCell>
           </TableRow>
         ))}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { resolveTemple } from "@/lib/temple"
+import { getTempleEntitlements } from "@/lib/entitlements"
 
 export async function GET(req: Request) {
   try {
@@ -11,6 +12,7 @@ export async function GET(req: Request) {
     }
 
     const temple = await resolveTemple(templeSlug)
+    const entitlements = await getTempleEntitlements(temple.id)
 
     const poojas = await prisma.pooja.findMany({
       where: {
@@ -20,7 +22,22 @@ export async function GET(req: Request) {
       orderBy: { price: "asc" },
     })
 
-    return NextResponse.json({ poojas })
+    // Free plan: enforce max sevas catalogue size
+    const max = entitlements?.maxPoojas
+    const limited =
+      max != null && poojas.length > max ? poojas.slice(0, max) : poojas
+
+    return NextResponse.json({
+      poojas: limited,
+      plan: entitlements?.planId || "FREE",
+      maxPoojas: max,
+      totalPoojas: poojas.length,
+      truncated: max != null && poojas.length > max,
+      upgradeHint:
+        max != null && poojas.length > max
+          ? "Upgrade to Growth for unlimited sevas"
+          : undefined,
+    })
   } catch (error) {
     console.error("Fetch poojas error:", error)
     return NextResponse.json(

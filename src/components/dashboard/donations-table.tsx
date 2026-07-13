@@ -12,10 +12,14 @@ interface Donation {
   purpose: string | null
   status: string
   createdAt: string
-  user: {
+  donorName?: string | null
+  want80G?: boolean
+  panNumber?: string | null
+  receiptNumber?: string | null
+  user?: {
     name: string | null
     email: string | null
-  }
+  } | null
 }
 
 export function DonationsTable() {
@@ -58,12 +62,21 @@ export function DonationsTable() {
           <TableRow key={donation.id}>
             <TableCell>
               <div>
-                <div className="font-medium">{donation.user.name || "अज्ञात"}</div>
-                <div className="text-sm text-gray-500">{donation.user.email}</div>
+                <div className="font-medium">
+                  {donation.donorName || donation.user?.name || "अतिथि / Guest"}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {donation.user?.email || donation.receiptNumber || "—"}
+                </div>
               </div>
             </TableCell>
             <TableCell className="font-medium">{formatPrice(Number(donation.amount))}</TableCell>
-            <TableCell>{donation.purpose || "सामान्य दान"}</TableCell>
+            <TableCell>
+              {donation.purpose || "सामान्य दान"}
+              {donation.want80G ? (
+                <span className="ml-1 text-[10px] text-saffron-700 font-semibold">80G</span>
+              ) : null}
+            </TableCell>
             <TableCell>
               <Badge variant={donation.status === "COMPLETED" ? "default" : "secondary"}>
                 {donation.status === "COMPLETED" ? "सफल" : "लंबित"}

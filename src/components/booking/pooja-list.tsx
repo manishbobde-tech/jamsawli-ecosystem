@@ -1,4 +1,5 @@
 "use client"
+import { DEFAULT_TENANT_SLUG } from "@/lib/tenant-client"
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,7 +24,7 @@ interface PoojaListProps {
 
 export function PoojaList({ onSelect, selectedPooja, templeSlug: propSlug }: PoojaListProps) {
   const temple = useOptionalTemple()
-  const templeSlug = propSlug || temple?.templeSlug || "jamsawli-hanuman"
+  const templeSlug = propSlug || temple?.templeSlug || DEFAULT_TENANT_SLUG
   const [poojas, setPoojas] = useState<Pooja[]>([])
   const [isLoading, setIsLoading] = useState(true)
 

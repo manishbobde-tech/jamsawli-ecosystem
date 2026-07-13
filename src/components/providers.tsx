@@ -2,16 +2,15 @@
 
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "@/components/ui/toaster"
-import { VoiceAssistant } from "@/components/voice/voice-assistant"
-import { VoiceCommandPalette } from "@/components/voice/voice-command-palette"
+import { I18nProvider } from "@/lib/i18n"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      {children}
-      <Toaster />
-      <VoiceAssistant />
-      <VoiceCommandPalette />
+      <I18nProvider>
+        {children}
+        <Toaster />
+      </I18nProvider>
     </SessionProvider>
   )
 }

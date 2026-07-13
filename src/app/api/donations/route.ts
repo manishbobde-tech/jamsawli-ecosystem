@@ -4,24 +4,31 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { razorpay } from "@/lib/razorpay"
 
+function makeReceiptNumber() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase()
+  return `MOS-${y}${m}-${rand}`
+}
+
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { message: "कृपया लॉगिन करें" },
-        { status: 401 }
-      )
-    }
-
-    const { amount, purpose, templeId } = await req.json()
+    const body = await req.json()
+    const {
+      amount,
+      purpose,
+      templeId,
+      donorName,
+      donorEmail,
+      donorPhone,
+      panNumber,
+      want80G,
+    } = body
 
     if (!amount || amount < 1) {
-      return NextResponse.json(
-        { message: "अमान्य राशि" },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: "अमान्य राशि" }, { status: 400 })
     }
 
     if (!templeId) {
@@ -31,10 +38,51 @@ export async function POST(req: Request) {
       )
     }
 
+    const temple = await prisma.temple.findFirst({
+      where: { id: templeId, isActive: true },
+      select: { id: true, name: true },
+    })
+
+    if (!temple) {
+      return NextResponse.json({ message: "मंदिर नहीं मिला" }, { status: 404 })
+    }
+
+    // Guest allowed: require a name either from session or body
+    const resolvedName =
+      donorName || session?.user?.name || session?.user?.email || null
+    if (!session?.user && !resolvedName) {
+      return NextResponse.json(
+        { message: "अतिथि दान के लिए नाम आवश्यक है" },
+        { status: 400 }
+      )
+    }
+
+    if (want80G) {
+      if (!panNumber || !/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(String(panNumber))) {
+        return NextResponse.json(
+          { message: "80G के लिए वैध PAN आवश्यक है" },
+          { status: 400 }
+        )
+      }
+      if (!resolvedName) {
+        return NextResponse.json(
+          { message: "80G रसीद के लिए नाम आवश्यक है" },
+          { status: 400 }
+        )
+      }
+    }
+
+    const receiptNumber = makeReceiptNumber()
+
     const order = await razorpay.orders.create({
-      amount: amount * 100,
+      amount: Math.round(Number(amount) * 100),
       currency: "INR",
-      receipt: `donation_${Date.now()}`,
+      receipt: receiptNumber.slice(0, 40),
+      notes: {
+        templeId,
+        purpose: purpose || "सामान्य दान",
+        want80G: want80G ? "true" : "false",
+      },
     })
 
     const donation = await prisma.donation.create({
@@ -42,12 +90,22 @@ export async function POST(req: Request) {
         amount,
         purpose: purpose || "सामान्य दान",
         orderId: order.id,
-        userId: session.user.id,
+        userId: session?.user?.id || null,
         templeId,
+        donorName: resolvedName,
+        donorEmail: donorEmail || session?.user?.email || null,
+        donorPhone: donorPhone || null,
+        panNumber: want80G ? String(panNumber).toUpperCase() : null,
+        want80G: Boolean(want80G),
+        receiptNumber,
       },
     })
 
-    return NextResponse.json({ order, donationId: donation.id })
+    return NextResponse.json({
+      order,
+      donationId: donation.id,
+      receiptNumber,
+    })
   } catch (error) {
     console.error("Donation error:", error)
     return NextResponse.json(
@@ -57,7 +115,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions)
 
@@ -71,11 +129,11 @@ export async function GET(req: Request) {
     const donations = await prisma.donation.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
-      take: 10,
+      take: 20,
     })
 
     return NextResponse.json({ donations })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "दान लोड करने में त्रुटि" },
       { status: 500 }

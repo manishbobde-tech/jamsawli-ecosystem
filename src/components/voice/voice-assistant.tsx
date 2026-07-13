@@ -50,7 +50,7 @@ export function VoiceAssistant() {
   }
 
   return (
-    <div className="fixed bottom-32 right-6 z-50">
+    <div className="fixed bottom-[calc(10rem+env(safe-area-inset-bottom))] lg:bottom-32 right-3 sm:right-6 z-40 no-print">
       {isOpen && (
         <div className="mb-4 bg-white rounded-xl shadow-2xl p-4 w-72 border border-saffron-200">
           <p className="text-sm text-gray-500 mb-2">

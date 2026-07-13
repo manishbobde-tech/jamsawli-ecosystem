@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import crypto from "crypto"
+import { assertFeature, featureDeniedPayload } from "@/lib/entitlements"
 
 export async function GET() {
   try {
@@ -14,6 +15,17 @@ export async function GET() {
     const orgId = (session.user as any).organizationId
     if (!orgId) {
       return NextResponse.json({ message: "No organization" }, { status: 403 })
+    }
+
+    const temple = await prisma.temple.findFirst({ where: { organizationId: orgId } })
+    if (temple) {
+      const gate = await assertFeature(temple.id, "developer_api")
+      if (!gate.ok) {
+        return NextResponse.json(
+          { message: gate.message, ...featureDeniedPayload(gate.requiredPlan, gate.entitlements?.planId) },
+          { status: 402 }
+        )
+      }
     }
 
     const keys = await prisma.apiKey.findMany({
@@ -49,6 +61,14 @@ export async function POST(req: Request) {
     }
 
     const { templeId, name, scopes } = await req.json()
+    const gate = await assertFeature(templeId, "developer_api")
+    if (!gate.ok) {
+      return NextResponse.json(
+        { message: gate.message, ...featureDeniedPayload(gate.requiredPlan, gate.entitlements?.planId) },
+        { status: 402 }
+      )
+    }
+
     const generatedKey = crypto.randomBytes(32).toString("hex")
 
     const apiKey = await prisma.apiKey.create({

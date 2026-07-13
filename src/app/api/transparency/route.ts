@@ -35,6 +35,7 @@ export async function GET(req: Request) {
         amount: true,
         purpose: true,
         createdAt: true,
+        donorName: true,
         user: { select: { name: true } },
       },
     })
@@ -88,7 +89,10 @@ export async function GET(req: Request) {
       recentDonations: recentDonations.map((d) => ({
         ...d,
         amount: Number(d.amount),
-        donorName: d.user.name || "अज्ञात भक्त",
+        donorName:
+          d.donorName ||
+          d.user?.name ||
+          "अज्ञात भक्त",
       })),
       projectProgress: projectProgress.map((p) => ({
         ...p,

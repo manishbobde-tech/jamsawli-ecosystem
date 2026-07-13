@@ -50,14 +50,14 @@ export function VoiceCommandPalette() {
       <Button
         variant="outline"
         size="sm"
-        className="fixed bottom-6 left-6 z-50 border-saffron-300"
+        className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-6 left-3 sm:left-6 z-40 border-saffron-300 no-print"
         onClick={() => setShowCommands(!showCommands)}
       >
         🎤 आदेश
       </Button>
 
       {showCommands && (
-        <div className="fixed bottom-20 left-6 z-50">
+        <div className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] lg:bottom-20 left-3 sm:left-6 z-40 no-print">
           <Card className="w-80 shadow-2xl border-saffron-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg text-sacred-maroon">

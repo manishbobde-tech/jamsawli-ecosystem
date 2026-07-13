@@ -13,6 +13,9 @@ const sidebarLinks = [
   { href: "/admin/payouts", label: "भुगतान", labelEn: "Payouts", icon: Wallet },
   { href: "/dashboard/bookings", label: "बुकिंग", labelEn: "Bookings", icon: CalendarHeart },
   { href: "/dashboard/donations", label: "दान", labelEn: "Donations", icon: Heart },
+  { href: "/dashboard/ops", label: "दैनिक ops", labelEn: "Daily ops", icon: ShieldAlert },
+  { href: "/dashboard/trust", label: "80G / 10BD", labelEn: "Compliance", icon: IndianRupee },
+  { href: "/dashboard/widgets", label: "विजेट", labelEn: "Widgets", icon: Building2 },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
