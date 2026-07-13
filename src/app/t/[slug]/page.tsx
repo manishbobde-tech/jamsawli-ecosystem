@@ -30,23 +30,44 @@ export default function Home() {
   const temple = useOptionalTemple()
   const slug = temple?.templeSlug || DEFAULT_TENANT_SLUG
   const tp = (path: string) => tenantPath(slug, path)
+  const isJamsawli = slug === "jamsawli-hanuman"
+  const isDemo = slug.startsWith("demo-")
+  const displayName =
+    (hi ? temple?.templeNameHi : temple?.templeName) ||
+    temple?.templeName ||
+    (hi ? "मंदिर" : "Temple")
+  const orgName = temple?.organizationName || "Temple Trust"
+  const locationLine = isJamsawli
+    ? hi
+      ? "चमत्कारिक श्री हनुमान मंदिर · छिंदवाड़ा, म.प्र."
+      : "Chamatkarik Shri Hanuman Mandir · Chhindwara, MP"
+    : isDemo
+      ? hi
+        ? `${orgName} · MandirOS लाइव डेमो`
+        : `${orgName} · MandirOS live demo`
+      : hi
+        ? `${orgName} · Powered by MandirOS`
+        : `${orgName} · Powered by MandirOS`
 
   return (
     <main className="gradient-hero">
       {/* Hero — mobile-first */}
       <section className="relative overflow-hidden">
         <div className="page-container pt-10 pb-12 sm:pt-16 sm:pb-20 md:pt-20 md:pb-28">
+          {isDemo && (
+            <div className="mb-4 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs sm:text-sm text-indigo-900">
+              {hi
+                ? "डेमो मंदिर — सैंपल दान/बुकिंग से भरा। असली पैसे यहाँ एकत्र नहीं होते।"
+                : "Demo temple — seeded sample donations & bookings. No real money is collected here."}
+            </div>
+          )}
           <div className="chip mb-5 sm:mb-6">
             <Sparkles className="h-3.5 w-3.5 text-saffron-500" />
-            <span className="truncate max-w-[85vw]">
-              {hi
-                ? "चमत्कारिक श्री हनुमान मंदिर · छिंदवाड़ा, म.प्र."
-                : "Chamatkarik Shri Hanuman Mandir · Chhindwara, MP"}
-            </span>
+            <span className="truncate max-w-[85vw]">{locationLine}</span>
           </div>
 
           <h1 className="font-hindi text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-sacred-maroon tracking-tight max-w-4xl leading-[1.12] text-balance">
-            {hi ? "जामसावली हनुमान लोक" : "Jamsawli Hanuman Lok"}
+            {displayName}
           </h1>
           <p className="mt-4 text-lg sm:text-xl md:text-2xl text-gray-700 max-w-2xl text-balance leading-snug">
             {hi
@@ -54,9 +75,13 @@ export default function Home() {
               : "Where faith is protected, every rupee is transparent, and every devotee is guided."}
           </p>
           <p className="mt-3 text-sm sm:text-base text-gray-500 max-w-xl leading-relaxed">
-            {hi
-              ? "स्वयंभू हनुमान · जाम-सर्प संगम · ३२ न्यासी · ₹३६२ करोड़ विकास की सार्वजनिक पारदर्शिता"
-              : "Swayambhu Hanuman · Jam–Sarpa confluence · 32 trustees · Public transparency for ₹362 Cr development"}
+            {isJamsawli
+              ? hi
+                ? "स्वयंभू हनुमान · जाम-सर्प संगम · ३२ न्यासी · ₹३६२ करोड़ विकास की सार्वजनिक पारदर्शिता"
+                : "Swayambhu Hanuman · Jam–Sarpa confluence · 32 trustees · Public transparency for ₹362 Cr development"
+              : hi
+                ? "दान · पूजा बुकिंग · पारदर्शिता · मनी डेस्क — इस टेनेन्ट पर लाइव।"
+                : "Donate · seva booking · transparency · money desk — live on this tenant."}
           </p>
 
           {/* Primary CTAs — full width stacked on phone */}
@@ -238,10 +263,21 @@ export default function Home() {
                 : "We only claim what ships in production."}
             </p>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <Stat label={hi ? "न्यासी" : "Trustees"} value="32" />
-              <Stat label={hi ? "विकास" : "Dev. outlay"} value="₹362Cr" />
-              <Stat label={hi ? "स्थान" : "Location"} value={hi ? "छिंदवाड़ा" : "Chhindwara"} />
-              <Stat label={hi ? "विरासत" : "Heritage"} value="100+" />
+              {isJamsawli ? (
+                <>
+                  <Stat label={hi ? "न्यासी" : "Trustees"} value="32" />
+                  <Stat label={hi ? "विकास" : "Dev. outlay"} value="₹362Cr" />
+                  <Stat label={hi ? "स्थान" : "Location"} value={hi ? "छिंदवाड़ा" : "Chhindwara"} />
+                  <Stat label={hi ? "विरासत" : "Heritage"} value="100+" />
+                </>
+              ) : (
+                <>
+                  <Stat label={hi ? "प्लान" : "Plan"} value={isDemo ? "Pro demo" : "Live"} />
+                  <Stat label={hi ? "दान" : "Donate"} value="UPI+" />
+                  <Stat label={hi ? "पारदर्शिता" : "Ledger"} value="Public" />
+                  <Stat label={hi ? "प्लेटफ़ॉर्म" : "Platform"} value="MandirOS" />
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -338,7 +374,13 @@ export default function Home() {
       {/* Final */}
       <section className="page-container pb-10 sm:pb-16 text-center">
         <h2 className="text-xl sm:text-2xl font-bold text-sacred-maroon">
-          {hi ? "जय श्री हनुमान" : "Jai Shri Hanuman"}
+          {isJamsawli
+            ? hi
+              ? "जय श्री हनुमान"
+              : "Jai Shri Hanuman"
+            : hi
+              ? "जय श्री राम · जय हनुमान"
+              : "Jai Shri Ram · Jai Hanuman"}
         </h2>
         <p className="mt-2 text-gray-600 text-sm mb-5">
           {hi ? "दान · पूजा · पारदर्शिता" : "Donate · book · transparency"}
